@@ -10,6 +10,11 @@ code ZSP (plus the affected companies). The sweep captures every ZSP release; th
 for S&P/ASX 200 additions/removals (quarterly reviews and intra-quarter changes). Membership is
 rebuilt backwards from an anchor constituent list (see ANCHOR_* below) applying those changes.
 
+Limitation found while collecting: the ASX archive serves announcements only for issuers listed today,
+under their current code and from the date they adopted it, so members that have since delisted or
+changed code (e.g. Woodside WPL, Oil Search, Sydney Airport, Newcrest, AGL before Dec 2014) have no rows;
+the build records every such symbol/span in "gaps".
+
 Stages (each resumable; raw responses cached under the scratchpad dir):
   sweep     fetch the per-date listing for every weekday in range
   notices   download + parse the ZSP (S&P index) announcement PDFs
@@ -380,9 +385,12 @@ def fetch_anchor(cache):
             if not line or line.startswith("!"):
                 continue
             cells.extend(c.strip() for c in line.lstrip("|").split("||"))
+        cells = [c.strip("| ").strip() for c in cells]
+        cells = [c for c in cells if c]
         if len(cells) < 2:
             continue
         code = cells[0].split("|")[0].strip()
+        cells = [cells[0]] + [c for c in cells[1:] if c != code]
         name = re.sub(r"\[\[(?:[^|\]]*\|)?([^\]]*)\]\]", r"\1", cells[1]).strip()
         name = re.sub(r"<[^>]+>|\{\{[^}]*\}\}", "", name).strip()
         if re.fullmatch(r"[A-Z0-9]{3}", code):
@@ -572,7 +580,7 @@ QTR = re.compile(r"quarterly\s+(activities|activity|report|cash\s*-?\s*flow|prod
                  r"appendi(?:x|ces)\s*4c\b|appendi(?:x|ces)\s*5b\b|\b(4c|5b)\b.*quarter|quarter.*\b(4c|5b)\b|"
                  r"\b(first|second|third|fourth|march|june|september|december|mar|jun|sep|sept|dec)\s+(\d{4}\s+)?"
                  r"quarter(ly)?\s+(\d{4}\s+)?(activities|activity|report|production|operations|operational|review|"
-                 r"update|results)|^\s*quarterly\s+report\s*$|\bq[1-4]\s+(fy)?\d{2,4}\s+(activities|production|report)", re.I)
+                 r"update|results)|^\s*quarterly\s+report\s*$|\bproduction\s+report\b|quarter\s+operations\s+review|\bq[1-4]\s+(fy)?\d{2,4}\s+(activities|production|report)", re.I)
 QTR_BAD = re.compile(r"announce|results|monthly|filed|form 10|distribution|dividend|interest|coupon|investment update|\bnta\b|portfolio|fund|"
                      r"options|teleconference|webcast|conference call|date|briefing|presentation", re.I)
 
@@ -711,7 +719,10 @@ def build(cache):
         names.setdefault(c["code"], []).append((c["eff"], c["name"]))
 
     def name_for(code, d):
-        return min(names[code], key=lambda x: abs((x[0] - d).days))[1]
+        # rows exist only for the issuer that holds the code today (see gaps), so one name per code:
+        # the anchor list's name, else the most recent S&P notice's name
+        good = [x for x in names[code] if x[1] and x[1].upper() != code]
+        return max(good or names[code], key=lambda x: x[0])[1]
 
     universe = set()
     for f, sset in timeline:
