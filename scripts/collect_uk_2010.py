@@ -371,7 +371,7 @@ def listing(name, epic, d0, d1, mode="1"):
 
 def html_unescape(s):
     import html
-    return html.unescape(s).strip()
+    return html.unescape(html.unescape(s)).replace("\u00c2\u00a0", " ").replace("\u00a0", " ").strip()
 
 
 def events():
@@ -407,23 +407,23 @@ NOT_EVENT = re.compile(
     r"conference call|webcast|audio|dial[- ]in|presentation (details|arrangements|timing)|"
     r"\bdoc re\b.*(proxy|circular)|form of proxy|posting of|availability of|publication of (notice|circular|prospectus|proxy)|"
     r"notice of (meeting|general)|replacement|correction|amendment|addendum|cancellation|withdrawn|"
-    r"director|pdmr|dividend|holding|voting rights|block ?listing|own shares|price monitoring", re.I)
+    r"director(ate)?\b|pdmr|dividend|holding\(s\)|holdings? in |voting rights|block ?listing|own shares|price monitoring", re.I)
 AGM = re.compile(r"\bagm\b|annual general meeting|\bagms\b|annual meeting|result of a\.?g\.?m|ag\s?m statement|general meeting.*annual", re.I)
-AGM_NOT = re.compile(r"notice|posting|proxy|circular|doc re|documents?|convening|availability|publication|date|resolutions? passed at.*(egm|general meeting\b(?!.*annual))", re.I)
+AGM_NOT = re.compile(r"information|arrangement|notice|posting|proxy|circular|doc re|documents?|convening|availability|publication|date|resolutions? passed at.*(egm|general meeting\b(?!.*annual))", re.I)
 ANNUAL = re.compile(r"annual (financial )?report|annual review|report (and|&) accounts|annual report.*20-f|form 20-f|10-k", re.I)
-ANNUAL_NOT = re.compile(r"20-f|10-k|\bsec\b|half|interim|sustainab|responsib|corporate responsibility|remuneration|esg|gender|payments to gov|slavery|tax|climate|\bmodern", re.I)
+ANNUAL_NOT = re.compile(r"subsidiary|^filing|\bfiles?\b|filed|\bsec\b|half|interim|sustainab|responsib|corporate responsibility|remuneration|esg|gender|payments to gov|slavery|tax|climate|\bmodern", re.I)
 INVESTOR = re.compile(r"capital markets? (day|event|update|seminar|presentation)|investor (day|seminar|event|update day|briefing)|strategy (day|update|presentation|review day)|analyst (day|seminar|event|visit)|investor and analyst", re.I)
 TRADING = re.compile(r"interim management|flows update|trading (statement|update|and|in |& |performance)|interim management statement|\bims\b|pre[- ]close|business update|sales update|q[1-4] (trading|update|ims|interim management)|(first|third) quarter (trading|update|ims|interim management)|christmas trading|trading$|trading update", re.I)
 RESULTS = re.compile(
     r"\bresults?\b|half[- ]?year(ly)? (report|financial report|statement)|interim (report|statement|financial report)|"
     r"(first|second|third|fourth) quarter|\bq[1-4]\b.*(report|result|earn)|preliminary (statement|announcement)|"
     r"prelim(inary)?s?\b|full[- ]year|annual results|earnings|"
-    r"^(hy|fy|h1|1h|h2)\s*'?\s*(20)?\d\d\b(?!.*(dividend|scrip|ims|trading))", re.I)
+    r"^[1-4]q\s*'?\d\d\b|half[- ]?year(ly)?\s+(re|fin|stat)|^(hy|fy|h1|1h|h2)\s*'?\s*(20)?\d\d\b(?!.*(dividend|scrip|ims|trading))", re.I)
 RESULTS_NOT = re.compile(r"production|operational review|operating (review|statement)|sales$|exploration|drilling|reserves|"
                          r"trial|study|phase|clinical|data|traffic|passenger|ratings|rating|stress test|election|vote|poll|pillar 3|"
                          r"capital (raising|return)|offer|acquisition|disposal|merger|tender|scheme|noteholder|bondholder|pricing|proposals|"
                          r"referendum|notice|\bdoc re|reconciliation|notification|kumba|de beers|anglo (american )?platinum|"
-                         r"thungela|meeting|change in time|statement re|top[- ]line|pipeline|\beba\b|cebs|horizon|presentation|webcast", re.I)
+                         r"\bwell\b|thungela|meeting|change in time|statement re|top[- ]line|pipeline|\beba\b|cebs|horizon|presentation|webcast", re.I)
 SUBSIDIARY = re.compile(r"kumba|de beers|anglo (american )?platinum|thungela|reconciliation|notification", re.I)
 
 
@@ -431,7 +431,7 @@ def classify(head):
     h = head.strip()
     if SUBSIDIARY.search(h) or re.search(r"postpone|cancel|statement re\b|update statement|update on .*(agm|annual general)", h, re.I):
         return None
-    if INVESTOR.search(h) and not re.search(r"notice|date|timing|webcast", h, re.I):
+    if INVESTOR.search(h) and not re.search(r"notice|date|timing|webcast|announcement$|details|^circ", h, re.I):
         return "Investor day"
     if AGM.search(h):
         if ANNUAL.search(h) and not ANNUAL_NOT.search(h):
@@ -455,14 +455,14 @@ def period_of(head, date):
     h = head.lower()
     y = re.search(r"\b(20\d\d)(?:/(\d\d))?\b", h)
     if not y:
-        m = (re.search(r"\bq[1-4]\s*(?:fy)?\s*'?\s*(\d\d)\b", h)
+        m = (re.search(r"\bq[1-4]\s*(?:fy)?\s*'?\s*(\d\d)\b", h) or re.search(r"\b[1-4]q\s*'?(\d\d)\b", h)
              or re.search(r"\b(?:hy|fy|h1|1h|h2)\s*'?\s*(\d\d)\b", h))
         yr = "20" + m.group(1) if m else None
     else:
         yr = y.group(0)
     if not yr:
         return None
-    m = re.search(r"\bq([1-4])\b", h) or re.search(r"\b(first|second|third|fourth) quarter", h)
+    m = re.search(r"\bq([1-4])\b", h) or re.search(r"\b([1-4])q\s*'?\d\d\b", h) or re.search(r"\b(first|second|third|fourth) quarter", h)
     if m:
         q = {"first": "1", "second": "2", "third": "3", "fourth": "4"}.get(m.group(1), m.group(1))
         return f"Q{q} {yr}"
@@ -484,6 +484,7 @@ def build():
         ems = mem[epic]
         targets = sorted(mem[("T", epic)])
         for a in sorted(blob["rows"], key=lambda r: (r["date"], r["time"])):
+            a["headline"], a["company"] = html_unescape(a["headline"]), html_unescape(a["company"])
             typ = classify(a["headline"])
             if not typ:
                 continue
@@ -556,7 +557,14 @@ def write():
                    "company delisted/acquired since; Investegate no longer resolves its EPIC, so its RNS history is not listed")
             gaps.append({"scope": f"{targets} [{epic}] FTSE 100 member {ms[0]}..{ms[-1]}: all event types",
                          "reason": why + "; LSE RNS listing API refuses automated reads (HTTP 403); company IR archive not collected"})
-        elif epic in raw and not raw[epic]["complete"]:
+        elif epic in raw and raw[epic]["rows"] and epic != "SHEL":
+            ds = sorted(a["date"] for a in raw[epic]["rows"])
+            if ds[0][:7] > shift(raw[epic]["from"][:7], 3):
+                gaps.append({"scope": f"{targets} [{epic}] {raw[epic]['from']}..{ds[0]}: all event types",
+                             "reason": f"Investegate lists this company's RNS history under {epic} only from {ds[0]}; "
+                                       "earlier announcements (filed under a former name/listing line) are not listed; "
+                                       "LSE RNS listing refuses automated reads"})
+        if epic in raw and not raw[epic]["complete"]:
             gaps.append({"scope": f"{targets} [{epic}]: all event types",
                          "reason": "Investegate listing could not be fully paged (fetch error); rows are partial"})
     # member-years (full calendar year in the index) without a Results / AGM / Annual report row
