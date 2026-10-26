@@ -576,6 +576,7 @@ STATIC_GAPS = [
     {"scope": "UK symbols", "reason": "LSE issuer archives carry no TIDM; TIDM is taken from today's LSE instrument list where the issuer name matches, else a name-derived symbol is used"},
     {"scope": "UK companies listed and delisted within the same month", "reason": "LSE archives are month-end snapshots, so such admissions are invisible"},
     {"scope": "India symbols", "reason": "SEBI filings carry no ticker; symbol is the upper-case company name slug"},
+    {"scope": "South Korea company names", "reason": "DART lists the filer under its current name; renamed companies show today's name, not the name at filing"},
     {"scope": "index membership (all markets)", "reason": "Not set: new listings are not index members on the listing date in these sources; no membership was inferred"},
 ]
 
