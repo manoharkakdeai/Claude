@@ -72,6 +72,8 @@ NAME2SYM = {
 }
 # Same listed entity, symbol changed after the backfill window.
 SYMBOL_ALIAS = {"TMPV": "TATAMOTORS"}
+# Historical NSE symbol -> current symbol Screener files the company under (renamed after the window).
+SCREENER_SYMBOL = {"TATAMOTORS": "TMPV", "IBULHSGFIN": "SAMMAANCAP", "INFRATEL": "INDUSTOWER", "MCDOWELL-N": "UNITDSPR"}
 
 _last = [0.0]
 session = requests.Session()
@@ -230,7 +232,7 @@ MON = {m: i for i, m in enumerate(["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Ju
 
 
 def screener_docs(sym):
-    page = fetch(SCREENER.format(sym))
+    page = fetch(SCREENER.format(SCREENER_SYMBOL.get(sym, sym)))
     if page["status"] != 200:
         return None, page
     soup = BeautifulSoup(page["text"], "html.parser")

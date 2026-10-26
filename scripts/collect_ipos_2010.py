@@ -332,7 +332,7 @@ def collect_uk(gaps):
             "doc_url": link, "doc_source": "exchange",
             "source": f"LSE issuer list archive {year} (monthly snapshot)",
         })
-    gaps.append({"scope": "UK issuers first listed in the archive long after their admission date", "reason": f"{late} admissions dropped: the issuer only appears in a monthly snapshot more than two months after its stated admission date (renamed issuers whose earlier name already carries the admission, or archive scope changes such as debt vehicles added later) (archive scope changes, e.g. debt/funding vehicles added to the list later), so the date cannot be confirmed as a new equity listing"})
+    gaps.append({"scope": "UK issuers first listed in the archive long after their admission date", "reason": f"{late} admissions dropped: the issuer only appears in a monthly snapshot more than two months after its stated admission date (renamed issuers whose earlier name already carries the admission, or archive scope changes such as debt vehicles added later); the date cannot be confirmed as a new equity listing"})
     gaps.append({"scope": "UK preference-share / debenture issuers", "reason": f"{len(nonequity)} issuers classed in LSE sectors 'Preference' or 'Debentures & Loans' excluded as non-equity listings"})
     gaps.append({"scope": "UK admissions that were moves between markets",
                  "reason": f"{transfers} admissions dropped because the issuer already appeared in an earlier monthly LSE snapshot (AIM<->Main Market moves, re-admissions)"})
@@ -429,7 +429,7 @@ def dart_form():
     return dict(DART_FORM)
 
 
-def dart_search(**kw):
+def dart_search(stop=None, **kw):
     out, page = [], 1
     while True:
         data = dart_form()
@@ -458,6 +458,8 @@ def dart_search(**kw):
                 "rcp": rc.group(1) if rc else None,
             })
         m = re.search(r"\[(\d+)/(\d+)\]", soup.get_text(" "))
+        if stop and any(stop(r) for r in out):
+            return out
         if not m or int(m.group(1)) >= int(m.group(2)):
             return out
         page += 1
@@ -474,6 +476,9 @@ def dart_ticker(corp):
     code = after("종목코드")
     eng = after("영문명")
     return (code if code and re.fullmatch(r"[0-9A-Z]{6}", code) else None), eng
+
+
+EXCH = re.compile(r"(^|\s)(유|코|넥)(\s|$)")
 
 
 def collect_korea(gaps):
@@ -501,13 +506,13 @@ def collect_korea(gaps):
         if not (listed_now or spac):
             skipped_other += 1
             continue
-        prior = dart_search(startDate=(fd - dt.timedelta(days=365)).strftime("%Y%m%d"),
+        prior = dart_search(stop=lambda p: EXCH.search(p["remark"]), startDate=(fd - dt.timedelta(days=365)).strftime("%Y%m%d"),
                             endDate=(fd - dt.timedelta(days=1)).strftime("%Y%m%d"),
                             option="corp", textCrpCik=r["corp"], textCrpNm=r["name"])
         if prior is None:
             gaps.append({"scope": f"South Korea {r['name']} {r['date']}", "reason": "DART prior-disclosure check failed"})
             continue
-        if any(re.search(r"(^|\s)(유|코|넥)(\s|$)", p["remark"]) for p in prior):
+        if any(EXCH.search(p["remark"]) for p in prior):
             followons += 1  # filer was already exchange-listed (KOSPI/KOSDAQ/KONEX) -> not an IPO
             continue
         ticker, eng = dart_ticker(r["corp"])
