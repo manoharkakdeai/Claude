@@ -548,7 +548,8 @@ RES1 = re.compile(r"\b(full|half|first[- ]half|second[- ]half|interim|annual|fin
                   r"\b(19|20)\d\d\s+(full|half|interim|annual)[- ]year\s+(results?|profit)|"
                   r"^\s*(\d{4}\s+)?results\s+presentation|"
                   r"(half|full)[- ]?year(ly)?\s+(investor\s+)?(presentation|media\s+release)", re.I)
-RES_BAD = re.compile(r"\bresults?\s+of\b|\bagm\b|annual general|to announce|will announce|details|impact|letter|"
+RES_BAD = re.compile(r"\bnotes?\b|bonds?\b|hybrid|144a|debenture|convertible|securities|\bvot(e|es|ing)\b|"
+                     r"buy[- ]?back|\bresults?\s+of\b|\bagm\b|annual general|to announce|will announce|details|impact|letter|"
                      r"calendar|"
                      r"anticipat|expected|guidance|forecast|outlook|market update|upgrade|"
                      r"downgrade|unaudited|estimate|drill|assay|exploration|trial|study|clinical|scheme|offer|meeting|"
@@ -564,6 +565,9 @@ AGM_ADDR = re.compile(r"\b(annual general meeting|agm)\b.*\b(address|addresses|s
                       re.I)
 CHAIR_ADDR = re.compile(r"\b(chairman|chairman's|chairman`s|chair's|chair|chairmans)\s+(and\s+.{0,40})?(address|speech)",
                         re.I)
+# pre-meeting procedural notices (withdrawn resolutions, postponement, registration, questions): not the
+# meeting itself; the meeting-day release (results/addresses) carries the AGM row
+AGM_PROC = re.compile(r"withdraw|postpone|adjourn|procedur|registration|questions|amendment|deferral|defer", re.I)
 AGM_NOTICE = re.compile(r"notice\s+of\s+(the\s+)?(\d{4}\s+)?(annual\s+general\s+meeting|agm|annual\s+meeting)|"
                         r"\b(annual\s+general\s+meeting|agm)\s+notice|notice\s+of\s+meeting", re.I)
 GEN_RES = re.compile(r"^\s*results?\s+of\s+(the\s+)?(\d{4}\s+)?meeting\b|^\s*meeting\s+results\b|"
@@ -581,7 +585,7 @@ QTR = re.compile(r"quarterly\s+(activities|activity|report|cash\s*-?\s*flow|prod
                  r"\b(first|second|third|fourth|march|june|september|december|mar|jun|sep|sept|dec)\s+(\d{4}\s+)?"
                  r"quarter(ly)?\s+(\d{4}\s+)?(activities|activity|report|production|operations|operational|review|"
                  r"update|results)|^\s*quarterly\s+report\s*$|\bproduction\s+report\b|quarter\s+operations\s+review|\bq[1-4]\s+(fy)?\d{2,4}\s+(activities|production|report)", re.I)
-QTR_BAD = re.compile(r"announce|results|monthly|filed|form 10|distribution|dividend|interest|coupon|investment update|\bnta\b|portfolio|fund|"
+QTR_BAD = re.compile(r"\bnotes?\b|bonds?\b|hybrid|debenture|subordinated|trustee|announce|results|monthly|filed|form 10|distribution|dividend|interest|coupon|investment update|\bnta\b|portfolio|fund|"
                      r"options|teleconference|webcast|conference call|date|briefing|presentation", re.I)
 
 PERIOD_RE = re.compile(r"\b(?P<q>Q[1-4])\s*(?P<qfy>FY)?\s*'?(?P<qy>\d{2,4})\b|"
@@ -629,7 +633,7 @@ def classify(h):
         pr = 2 if re.search(r"presentation|slides|briefing|webcast|call", h, re.I) else 1
         out.append(("Results", 3 if AMEND.search(h) else pr, "results"))
     agm_ok = not NOT_AGM.search(h) and not AGM_NOTICE.search(h) and not AGM_BAD.search(h) \
-        and not EXCL_NOTICE.search(h)
+        and not EXCL_NOTICE.search(h) and not AGM_PROC.search(h)
     if AGM_RES.search(h) and agm_ok:
         out.append(("AGM", 0, "agm_results"))
     elif AGM_ADDR.search(h) and agm_ok:
@@ -644,7 +648,7 @@ def classify(h):
         out.append(("Annual report", 0, "annual_report"))
     if INVDAY.search(h) and not EXCL_NOTICE.search(h) and not re.search(
             r"presenting at|conference|confirms|to host|will host|details|virtual investor day|switzer|announces|"
-            r"to be held|upcoming", h, re.I):
+            r"to be held|upcoming|registration|registrations|correction|corrected|invitation|reminder", h, re.I):
         out.append(("Investor day", 0, "investor_day"))
     if QTR.search(h) and not QTR_BAD.search(h):
         out.append(("Filing", 0, "quarterly"))

@@ -11,7 +11,7 @@
   "Anchor constituent list: Wikipedia 'S&P/ASX 200' article revision 1047236919 (https://en.wikipedia.org/w/index.php?oldid=1047236919&action=raw)"
  ],
  "membership_method": "S&P/ASX 200 membership on each event date was rebuilt backwards from the anchor list (taken as the membership in force on 2021-09-19) by undoing every S&P/ASX 200 addition/removal parsed from S&P DJI index announcements released on the ASX under code ZSP between Dec 2009 and Sep 2021, then the 20 Sep 2021 review was applied forward. Only events of companies that were members on the event date are included; delisted and since-removed members are included.",
- "generated_at": "2026-10-26T12:37:49+00:00",
+ "generated_at": "2026-10-26T12:39:14+00:00",
  "rows": [
   {
    "date": "2010-01-06",
@@ -166,19 +166,6 @@
    "time": "09:24",
    "title": "Santos Fourth Quarter Activities Report",
    "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01030498",
-   "doc_source": "exchange",
-   "source": "ASX announcements"
-  },
-  {
-   "date": "2010-01-22",
-   "market": "Australia",
-   "index": "S&P/ASX 200",
-   "symbol": "TAH",
-   "company": "Tabcorp",
-   "type": "Filing",
-   "time": "12:44",
-   "title": "Tabcorp Bonds quarterly report to Trustee and ASIC",
-   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01030951",
    "doc_source": "exchange",
    "source": "ASX announcements"
   },
@@ -1647,19 +1634,6 @@
    "source": "ASX announcements"
   },
   {
-   "date": "2010-04-29",
-   "market": "Australia",
-   "index": "S&P/ASX 200",
-   "symbol": "TAH",
-   "company": "Tabcorp",
-   "type": "Filing",
-   "time": "11:28",
-   "title": "Tabcorp Bonds quarterly report to Trustee and ASIC",
-   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01058893",
-   "doc_source": "exchange",
-   "source": "ASX announcements"
-  },
-  {
    "date": "2010-04-30",
    "market": "Australia",
    "index": "S&P/ASX 200",
@@ -2164,19 +2138,6 @@
    "time": "10:15",
    "title": "Quarterly Activities Report",
    "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01082140",
-   "doc_source": "exchange",
-   "source": "ASX announcements"
-  },
-  {
-   "date": "2010-07-27",
-   "market": "Australia",
-   "index": "S&P/ASX 200",
-   "symbol": "TAH",
-   "company": "Tabcorp",
-   "type": "Filing",
-   "time": "10:42",
-   "title": "Tabcorp Bonds Quarterly Report to 30 June 2010",
-   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01082158",
    "doc_source": "exchange",
    "source": "ASX announcements"
   },
@@ -4397,19 +4358,6 @@
    "date": "2010-10-26",
    "market": "Australia",
    "index": "S&P/ASX 200",
-   "symbol": "TAH",
-   "company": "Tabcorp",
-   "type": "Filing",
-   "time": "09:54",
-   "title": "Tabcorp Bonds Quarterly Report to Trustee and ASIC",
-   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01112298",
-   "doc_source": "exchange",
-   "source": "ASX announcements"
-  },
-  {
-   "date": "2010-10-26",
-   "market": "Australia",
-   "index": "S&P/ASX 200",
    "symbol": "WOR",
    "company": "Worley",
    "type": "AGM",
@@ -5797,19 +5745,6 @@
    "time": "09:16",
    "title": "Financial results for the Quarter ended December 31, 2010",
    "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01145082",
-   "doc_source": "exchange",
-   "source": "ASX announcements"
-  },
-  {
-   "date": "2011-01-28",
-   "market": "Australia",
-   "index": "S&P/ASX 200",
-   "symbol": "TAH",
-   "company": "Tabcorp",
-   "type": "Filing",
-   "time": "10:11",
-   "title": "Tabcorp Bonds Quarterly Report to Trustee and ASIC",
-   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01145126",
    "doc_source": "exchange",
    "source": "ASX announcements"
   },
@@ -7451,19 +7386,6 @@
    "date": "2011-04-29",
    "market": "Australia",
    "index": "S&P/ASX 200",
-   "symbol": "TAH",
-   "company": "Tabcorp",
-   "type": "Filing",
-   "time": "10:44",
-   "title": "Tabcorp Bonds Quarterly Report to Trustee and ASIC",
-   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01175454",
-   "doc_source": "exchange",
-   "source": "ASX announcements"
-  },
-  {
-   "date": "2011-04-29",
-   "market": "Australia",
-   "index": "S&P/ASX 200",
    "symbol": "WEC",
    "company": "White Energy Company Limited",
    "type": "Filing",
@@ -8029,19 +7951,6 @@
    "time": "08:27",
    "title": "Quarterly Cashflow Report",
    "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01201124",
-   "doc_source": "exchange",
-   "source": "ASX announcements"
-  },
-  {
-   "date": "2011-07-28",
-   "market": "Australia",
-   "index": "S&P/ASX 200",
-   "symbol": "TAH",
-   "company": "Tabcorp",
-   "type": "Filing",
-   "time": "15:37",
-   "title": "Tabcorp Bonds Quarterly Report to Trustee and ASIC",
-   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01201535",
    "doc_source": "exchange",
    "source": "ASX announcements"
   },
@@ -10811,19 +10720,6 @@
    "date": "2011-10-31",
    "market": "Australia",
    "index": "S&P/ASX 200",
-   "symbol": "TAH",
-   "company": "Tabcorp",
-   "type": "Filing",
-   "time": "16:19",
-   "title": "Tabcorp Bonds Quarterly Report to Trustee and ASIC",
-   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01235869",
-   "doc_source": "exchange",
-   "source": "ASX announcements"
-  },
-  {
-   "date": "2011-10-31",
-   "market": "Australia",
-   "index": "S&P/ASX 200",
    "symbol": "WEC",
    "company": "White Energy Company Limited",
    "type": "Filing",
@@ -11192,9 +11088,9 @@
    "symbol": "SBM",
    "company": "St Barbara",
    "type": "AGM",
-   "time": "09:16",
-   "title": "2011 AGM Withdrawal of Resolutions 2 and 6",
-   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01241924",
+   "time": "09:40",
+   "title": "2011 AGM Presentations by Chairman and MD and CEO",
+   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01241949",
    "doc_source": "exchange",
    "source": "ASX announcements"
   },
@@ -11884,19 +11780,6 @@
    "time": "09:48",
    "title": "Quarterly Activities and Cashflow Report",
    "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01262846",
-   "doc_source": "exchange",
-   "source": "ASX announcements"
-  },
-  {
-   "date": "2012-01-30",
-   "market": "Australia",
-   "index": "S&P/ASX 200",
-   "symbol": "TAH",
-   "company": "Tabcorp",
-   "type": "Filing",
-   "time": "11:46",
-   "title": "Tabcorp Bonds Quarterly Report to Trustee and ASIC",
-   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01262971",
    "doc_source": "exchange",
    "source": "ASX announcements"
   },
@@ -13629,19 +13512,6 @@
    "source": "ASX announcements"
   },
   {
-   "date": "2012-04-30",
-   "market": "Australia",
-   "index": "S&P/ASX 200",
-   "symbol": "TAH",
-   "company": "Tabcorp",
-   "type": "Filing",
-   "time": "16:24",
-   "title": "Tabcorp Bonds Quarterly Report to Trustee and ASIC",
-   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01292638",
-   "doc_source": "exchange",
-   "source": "ASX announcements"
-  },
-  {
    "date": "2012-05-01",
    "market": "Australia",
    "index": "S&P/ASX 200",
@@ -14316,19 +14186,6 @@
    "time": "11:34",
    "title": "June 2012 Quarterly Production Report",
    "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01318464",
-   "doc_source": "exchange",
-   "source": "ASX announcements"
-  },
-  {
-   "date": "2012-07-31",
-   "market": "Australia",
-   "index": "S&P/ASX 200",
-   "symbol": "TAH",
-   "company": "Tabcorp",
-   "type": "Filing",
-   "time": "14:46",
-   "title": "Tabcorp Bonds Quarterly Report to Trustee and ASIC",
-   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01318755",
    "doc_source": "exchange",
    "source": "ASX announcements"
   },
@@ -16890,19 +16747,6 @@
    "source": "ASX announcements"
   },
   {
-   "date": "2012-10-30",
-   "market": "Australia",
-   "index": "S&P/ASX 200",
-   "symbol": "TAH",
-   "company": "Tabcorp",
-   "type": "Filing",
-   "time": "11:17",
-   "title": "Tabcorp Subordinated Notes Quarterly Report",
-   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01349758",
-   "doc_source": "exchange",
-   "source": "ASX announcements"
-  },
-  {
    "date": "2012-10-31",
    "market": "Australia",
    "index": "S&P/ASX 200",
@@ -18175,19 +18019,6 @@
    "time": "18:47",
    "title": "Quarterly Cashflow Report",
    "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01377403",
-   "doc_source": "exchange",
-   "source": "ASX announcements"
-  },
-  {
-   "date": "2013-01-30",
-   "market": "Australia",
-   "index": "S&P/ASX 200",
-   "symbol": "TAH",
-   "company": "Tabcorp",
-   "type": "Filing",
-   "time": "16:55",
-   "title": "Tabcorp Bonds Quarterly Report to Trustee and ASIC",
-   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01377322",
    "doc_source": "exchange",
    "source": "ASX announcements"
   },
@@ -19751,19 +19582,6 @@
    "source": "ASX announcements"
   },
   {
-   "date": "2013-04-29",
-   "market": "Australia",
-   "index": "S&P/ASX 200",
-   "symbol": "TAH",
-   "company": "Tabcorp",
-   "type": "Filing",
-   "time": "16:03",
-   "title": "Tabcorp Bonds Quarterly Report to Trustee and ASIC",
-   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01403673",
-   "doc_source": "exchange",
-   "source": "ASX announcements"
-  },
-  {
    "date": "2013-04-30",
    "market": "Australia",
    "index": "S&P/ASX 200",
@@ -20222,19 +20040,6 @@
    "source": "ASX announcements"
   },
   {
-   "date": "2013-06-18",
-   "market": "Australia",
-   "index": "S&P/ASX 200",
-   "symbol": "WOW",
-   "company": "Woolworths",
-   "type": "Results",
-   "time": "10:14",
-   "title": "Woolworths Limited - Buy Back of US 144A Notes Final Results",
-   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01417774",
-   "doc_source": "exchange",
-   "source": "ASX announcements"
-  },
-  {
    "date": "2013-06-24",
    "market": "Australia",
    "index": "S&P/ASX 200",
@@ -20558,19 +20363,6 @@
    "time": "08:25",
    "title": "Quarterly Activities Report",
    "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01428644",
-   "doc_source": "exchange",
-   "source": "ASX announcements"
-  },
-  {
-   "date": "2013-07-30",
-   "market": "Australia",
-   "index": "S&P/ASX 200",
-   "symbol": "TAH",
-   "company": "Tabcorp",
-   "type": "Filing",
-   "time": "15:48",
-   "title": "Tabcorp Bonds Quarterly Report to Trustee and ASIC",
-   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01428997",
    "doc_source": "exchange",
    "source": "ASX announcements"
   },
@@ -23663,19 +23455,6 @@
    "source": "ASX announcements"
   },
   {
-   "date": "2013-10-31",
-   "market": "Australia",
-   "index": "S&P/ASX 200",
-   "symbol": "TAH",
-   "company": "Tabcorp",
-   "type": "Filing",
-   "time": "15:38",
-   "title": "Tabcorp Subordinated Notes Quarterly Report",
-   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01461007",
-   "doc_source": "exchange",
-   "source": "ASX announcements"
-  },
-  {
    "date": "2013-11-01",
    "market": "Australia",
    "index": "S&P/ASX 200",
@@ -24899,19 +24678,6 @@
    "time": "10:45",
    "title": "ORG Quarterly Production Report - December 2013",
    "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01487261",
-   "doc_source": "exchange",
-   "source": "ASX announcements"
-  },
-  {
-   "date": "2014-01-31",
-   "market": "Australia",
-   "index": "S&P/ASX 200",
-   "symbol": "TAH",
-   "company": "Tabcorp",
-   "type": "Filing",
-   "time": "16:04",
-   "title": "Tabcorp Bonds Quarterly Report to Trustee and ASIC",
-   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01487784",
    "doc_source": "exchange",
    "source": "ASX announcements"
   },
@@ -26588,19 +26354,6 @@
    "source": "ASX announcements"
   },
   {
-   "date": "2014-04-30",
-   "market": "Australia",
-   "index": "S&P/ASX 200",
-   "symbol": "TAH",
-   "company": "Tabcorp",
-   "type": "Filing",
-   "time": "13:52",
-   "title": "Tabcorp Subordinated Notes Quarterly Report",
-   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01513306",
-   "doc_source": "exchange",
-   "source": "ASX announcements"
-  },
-  {
    "date": "2014-05-01",
    "market": "Australia",
    "index": "S&P/ASX 200",
@@ -27198,19 +26951,6 @@
    "time": "08:25",
    "title": "Quarterly Activities Report",
    "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01536868",
-   "doc_source": "exchange",
-   "source": "ASX announcements"
-  },
-  {
-   "date": "2014-07-29",
-   "market": "Australia",
-   "index": "S&P/ASX 200",
-   "symbol": "TAH",
-   "company": "Tabcorp",
-   "type": "Filing",
-   "time": "14:27",
-   "title": "Tabcorp Subordinated Notes Quarterly Report",
-   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01537108",
    "doc_source": "exchange",
    "source": "ASX announcements"
   },
@@ -30359,19 +30099,6 @@
    "date": "2014-10-29",
    "market": "Australia",
    "index": "S&P/ASX 200",
-   "symbol": "TAH",
-   "company": "Tabcorp",
-   "type": "Filing",
-   "time": "13:46",
-   "title": "Tabcorp Subordinated Notes Quarterly Report",
-   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01567967",
-   "doc_source": "exchange",
-   "source": "ASX announcements"
-  },
-  {
-   "date": "2014-10-29",
-   "market": "Australia",
-   "index": "S&P/ASX 200",
    "symbol": "WOR",
    "company": "Worley",
    "type": "Investor day",
@@ -31724,19 +31451,6 @@
    "time": "12:51",
    "title": "ORG Quarterly Production Report - Dec 2014",
    "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01594698",
-   "doc_source": "exchange",
-   "source": "ASX announcements"
-  },
-  {
-   "date": "2015-01-30",
-   "market": "Australia",
-   "index": "S&P/ASX 200",
-   "symbol": "TAH",
-   "company": "Tabcorp",
-   "type": "Filing",
-   "time": "10:10",
-   "title": "Tabcorp Subordinated Notes Quarterly Report",
-   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01594495",
    "doc_source": "exchange",
    "source": "ASX announcements"
   },
@@ -33301,19 +33015,6 @@
    "source": "ASX announcements"
   },
   {
-   "date": "2015-04-21",
-   "market": "Australia",
-   "index": "S&P/ASX 200",
-   "symbol": "GPT",
-   "company": "GPT Group",
-   "type": "AGM",
-   "time": "11:14",
-   "title": "AGM - Withdrawal of Resolutions 3 and 4",
-   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01617604",
-   "doc_source": "exchange",
-   "source": "ASX announcements"
-  },
-  {
    "date": "2015-04-22",
    "market": "Australia",
    "index": "S&P/ASX 200",
@@ -33431,19 +33132,6 @@
    "source": "ASX announcements"
   },
   {
-   "date": "2015-04-28",
-   "market": "Australia",
-   "index": "S&P/ASX 200",
-   "symbol": "TAH",
-   "company": "Tabcorp",
-   "type": "Filing",
-   "time": "16:32",
-   "title": "Tabcorp Subordinated Notes Quarterly Report",
-   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01619639",
-   "doc_source": "exchange",
-   "source": "ASX announcements"
-  },
-  {
    "date": "2015-04-30",
    "market": "Australia",
    "index": "S&P/ASX 200",
@@ -33544,6 +33232,19 @@
    "time": "07:33",
    "title": "Downer EDI 2015 Investor Day",
    "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01622375",
+   "doc_source": "exchange",
+   "source": "ASX announcements"
+  },
+  {
+   "date": "2015-05-05",
+   "market": "Australia",
+   "index": "S&P/ASX 200",
+   "symbol": "GPT",
+   "company": "GPT Group",
+   "type": "AGM",
+   "time": "15:55",
+   "title": "Results of Meeting",
+   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01622635",
    "doc_source": "exchange",
    "source": "ASX announcements"
   },
@@ -34357,19 +34058,6 @@
    "time": "18:22",
    "title": "June Quarterly Activities and Cashflow Report",
    "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01646841",
-   "doc_source": "exchange",
-   "source": "ASX announcements"
-  },
-  {
-   "date": "2015-07-31",
-   "market": "Australia",
-   "index": "S&P/ASX 200",
-   "symbol": "TAH",
-   "company": "Tabcorp",
-   "type": "Filing",
-   "time": "14:45",
-   "title": "Tabcorp Subordinated Notes Quarterly Report",
-   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01646421",
    "doc_source": "exchange",
    "source": "ASX announcements"
   },
@@ -37693,19 +37381,6 @@
    "date": "2015-10-30",
    "market": "Australia",
    "index": "S&P/ASX 200",
-   "symbol": "TAH",
-   "company": "Tabcorp",
-   "type": "Filing",
-   "time": "14:35",
-   "title": "Tabcorp Subordinated Notes Quarterly Report",
-   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01679630",
-   "doc_source": "exchange",
-   "source": "ASX announcements"
-  },
-  {
-   "date": "2015-10-30",
-   "market": "Australia",
-   "index": "S&P/ASX 200",
    "symbol": "WHC",
    "company": "Whitehaven Coal",
    "type": "AGM",
@@ -38979,19 +38654,6 @@
    "time": "09:37",
    "title": "December Quarterly Activities and Cashflow Report",
    "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01706631",
-   "doc_source": "exchange",
-   "source": "ASX announcements"
-  },
-  {
-   "date": "2016-01-29",
-   "market": "Australia",
-   "index": "S&P/ASX 200",
-   "symbol": "TAH",
-   "company": "Tabcorp",
-   "type": "Filing",
-   "time": "13:23",
-   "title": "Tabcorp Subordinated Notes Quarterly Report",
-   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01706970",
    "doc_source": "exchange",
    "source": "ASX announcements"
   },
@@ -40762,19 +40424,6 @@
    "source": "ASX announcements"
   },
   {
-   "date": "2016-04-29",
-   "market": "Australia",
-   "index": "S&P/ASX 200",
-   "symbol": "TAH",
-   "company": "Tabcorp",
-   "type": "Filing",
-   "time": "11:18",
-   "title": "Tabcorp Subordinated Notes Quarterly Report",
-   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01735764",
-   "doc_source": "exchange",
-   "source": "ASX announcements"
-  },
-  {
    "date": "2016-05-02",
    "market": "Australia",
    "index": "S&P/ASX 200",
@@ -41315,19 +40964,6 @@
    "date": "2016-06-20",
    "market": "Australia",
    "index": "S&P/ASX 200",
-   "symbol": "GNC",
-   "company": "GrainCorp",
-   "type": "Investor day",
-   "time": "10:05",
-   "title": "Investor Day Presentation - Correction",
-   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01750013",
-   "doc_source": "exchange",
-   "source": "ASX announcements"
-  },
-  {
-   "date": "2016-06-20",
-   "market": "Australia",
-   "index": "S&P/ASX 200",
    "symbol": "MTS",
    "company": "Metcash",
    "type": "Results",
@@ -41687,19 +41323,6 @@
    "time": "09:42",
    "title": "Financial Results for the Fourth Quarter & Fiscal Year 2016",
    "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01761881",
-   "doc_source": "exchange",
-   "source": "ASX announcements"
-  },
-  {
-   "date": "2016-07-29",
-   "market": "Australia",
-   "index": "S&P/ASX 200",
-   "symbol": "TAH",
-   "company": "Tabcorp",
-   "type": "Filing",
-   "time": "10:03",
-   "title": "Tabcorp Subordinated Notes Quarterly Report",
-   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01761928",
    "doc_source": "exchange",
    "source": "ASX announcements"
   },
@@ -45049,19 +44672,6 @@
    "source": "ASX announcements"
   },
   {
-   "date": "2016-10-28",
-   "market": "Australia",
-   "index": "S&P/ASX 200",
-   "symbol": "TAH",
-   "company": "Tabcorp",
-   "type": "Filing",
-   "time": "11:29",
-   "title": "Tabcorp Subordinated Notes Quarterly Report",
-   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01795435",
-   "doc_source": "exchange",
-   "source": "ASX announcements"
-  },
-  {
    "date": "2016-10-31",
    "market": "Australia",
    "index": "S&P/ASX 200",
@@ -46328,19 +45938,6 @@
    "time": "09:28",
    "title": "December Quarterly Activities and Cashflow Report",
    "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01822961",
-   "doc_source": "exchange",
-   "source": "ASX announcements"
-  },
-  {
-   "date": "2017-01-30",
-   "market": "Australia",
-   "index": "S&P/ASX 200",
-   "symbol": "TAH",
-   "company": "Tabcorp",
-   "type": "Filing",
-   "time": "17:05",
-   "title": "Tabcorp Subordinated Notes Quarterly Report",
-   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01823314",
    "doc_source": "exchange",
    "source": "ASX announcements"
   },
@@ -48738,19 +48335,6 @@
    "time": "07:30",
    "title": "2017 Strategy Briefing Day Presentation",
    "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01863577",
-   "doc_source": "exchange",
-   "source": "ASX announcements"
-  },
-  {
-   "date": "2017-06-08",
-   "market": "Australia",
-   "index": "S&P/ASX 200",
-   "symbol": "WOR",
-   "company": "Worley",
-   "type": "Investor day",
-   "time": "15:51",
-   "title": "Correction to Investor Day 24 May 2017",
-   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=01864275",
    "doc_source": "exchange",
    "source": "ASX announcements"
   },
@@ -69498,19 +69082,6 @@
    "date": "2019-11-04",
    "market": "Australia",
    "index": "S&P/ASX 200",
-   "symbol": "SUL",
-   "company": "Super Retail Group",
-   "type": "Investor day",
-   "time": "08:24",
-   "title": "ASX announcement - Investor Day Registration Closing",
-   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=02168738",
-   "doc_source": "exchange",
-   "source": "ASX announcements"
-  },
-  {
-   "date": "2019-11-04",
-   "market": "Australia",
-   "index": "S&P/ASX 200",
    "symbol": "WBC",
    "company": "Westpac",
    "type": "Annual report",
@@ -82751,19 +82322,6 @@
    "period": "FY21",
    "title": "FY2021 Third Quarter Earnings Release",
    "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=02372389",
-   "doc_source": "exchange",
-   "source": "ASX announcements"
-  },
-  {
-   "date": "2021-05-11",
-   "market": "Australia",
-   "index": "S&P/ASX 200",
-   "symbol": "BAP",
-   "company": "Bapcor",
-   "type": "Investor day",
-   "time": "08:58",
-   "title": "Bapcor Investor Day Registration",
-   "doc_url": "https://www.asx.com.au/asx/v2/statistics/displayAnnouncement.do?display=pdf&idsId=02373437",
    "doc_source": "exchange",
    "source": "ASX announcements"
   },
