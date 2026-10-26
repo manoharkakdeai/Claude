@@ -236,14 +236,15 @@ def membership(anchor):
 # ------------------------------------------------------------------- parsing
 def parse_period(name):
     """'平成28年3月期第1四半期決算短信' -> 'Q1 FY2016/03'; annual -> 'FY2016/03'."""
-    m = re.search(r"(?:平成\s*(\d+|元)|(20\d\d))\s*年\s*(\d{1,2})\s*月期", name)
+    m = re.search(r"(?:(平成|令和)\s*(\d+|元)|(20\d\d))\s*年\s*(\d{1,2})\s*月期", name)
     if not m:
         return None
     if m.group(1):
-        y = 1989 if m.group(1) == "元" else 1988 + int(m.group(1))
+        n = 1 if m.group(2) == "元" else int(m.group(2))
+        y = (1988 if m.group(1) == "平成" else 2018) + n
     else:
-        y = int(m.group(2))
-    fy = f"FY{y}/{int(m.group(3)):02d}"
+        y = int(m.group(3))
+    fy = f"FY{y}/{int(m.group(4)):02d}"
     rest = name[m.end():]
     q = re.search(r"第\s*([1-4１-４一二三四])\s*四半期", rest)
     if q:
@@ -299,7 +300,7 @@ def tanshin_links(html):
     for m in re.finditer(r'<a title="([^"]*決算短信[^"]*)" href="(/[0-9A-Z]{4}/(\d{18}))">([^<]*)<', html):
         title, href, docid, text = m.groups()
         title = BeautifulSoup(title, "html.parser").get_text()
-        if any(x in title for x in ("訂正", "修正", "損益計算書", "補足", "説明")):
+        if any(x in title for x in ("訂正", "修正", "損益計算書", "補足", "説明", "延長", "承認", "延期")):
             continue
         if href in seen:
             continue
@@ -326,11 +327,34 @@ def period_end_from_yuho_title(title):
     m = re.search(r"-(\d{4})/(\d{2})/(\d{2})\)", title)
     if m:
         return dt.date(int(m.group(1)), int(m.group(2)), int(m.group(3)))
-    m = re.search(r"-(?:平成)?(\d+|元)年(\d{1,2})月(\d{1,2})日\)", title)
+    m = re.search(r"-(平成|令和)?(\d+|元)年(\d{1,2})月(\d{1,2})日\)", title)
     if m:
-        y = m.group(1)
-        y = 1989 if y == "元" else (1988 + int(y) if int(y) < 100 else int(y))
-        return dt.date(y, int(m.group(2)), int(m.group(3)))
+        n = 1 if m.group(2) == "元" else int(m.group(2))
+        y = n if n > 1000 else n + (2018 if m.group(1) == "令和" else 1988)
+        return dt.date(y, int(m.group(3)), int(m.group(4)))
+    return None
+
+
+def infer_tanshin_date(title, text):
+    """Release date from the M/D link text: first such day after the quarter end."""
+    md = re.fullmatch(r"(\d{1,2})/(\d{1,2})", (text or "").strip())
+    per = parse_period(title)
+    if not md or not per:
+        return None
+    m = re.search(r"FY(\d{4})/(\d{2})", per)
+    fy_y, fy_m = int(m.group(1)), int(m.group(2))
+    q = re.match(r"Q(\d)", per)
+    back = (4 - int(q.group(1))) * 3 if q else (6 if per.startswith("H1") else 0)
+    qm = fy_y * 12 + fy_m - 1 - back
+    qend = dt.date(qm // 12, qm % 12 + 1, 1)  # first day of quarter-end month
+    mo, d = int(md.group(1)), int(md.group(2))
+    for y in (qend.year, qend.year + 1):
+        try:
+            cand = dt.date(y, mo, d)
+        except ValueError:
+            continue
+        if qend + dt.timedelta(days=27) < cand <= qend + dt.timedelta(days=200):
+            return cand.isoformat()
     return None
 
 
@@ -414,6 +438,8 @@ def collect_company(code, info, mem, rows, gaps, tanshin_time=True):
                 if m:
                     date = f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
                     time_ = f"{int(m.group(4)):02d}:{m.group(5)}"
+            if not date:
+                date = infer_tanshin_date(title, text)
             if not date:
                 gaps.append({"scope": f"{code} {name} Results {title}",
                              "reason": "release date not readable from IRBANK document page"})
