@@ -432,7 +432,7 @@ SUBSIDIARY = re.compile(
     r"bank ekonomi|grupo financiero|hk ?& ?shanghai|hongkong and shanghai|hong kong and shanghai|saudi british|hang seng|"
     r"citizens financial|rbs holdings|royal bank of scotland n\.?v|natwest markets|ulster bank|absa|"
     r"barclays (us|bank|africa)|cairn india|\bcil\b|investec (tier|bank)|lloyds bank|bank of scotland|hbos|"
-    r"santander uk|scottish widows|scottish amicable|listed debt|national grid (gas|electricity|north america|usa)|"
+    r"santander uk|scottish widows|scottish amicable|listed debt|group companies with|national grid (gas|electricity|north america|usa)|"
     r"\busl\b|united spirits|vantage towers|\bus half year|jackson national|hiscox insurance|"
     r"nationwide|aviva (insurance|investors)|unilever (n\.?v|united states|capital)|shell (international|finance)", re.I)
 
@@ -461,7 +461,7 @@ def reject_reason(head):
     h = head.strip()
     if SUBSIDIARY.search(h):
         return "subsidiary/affiliate/other issuer"
-    if re.search(r"postpone|cancel|statement re\b|update statement|statement on .*vote", h, re.I):
+    if re.search(r"postpone|cancel|statement re\b|update statement|statement on .*vote|update on .*(agm|annual general|vote)|voting outcome", h, re.I):
         return "other"
     return None
 
@@ -475,6 +475,8 @@ def classify(head):
     if AGM.search(h) or re.search(r"voting at .*\bann", h, re.I):
         if ANNUAL.search(h) and not ANNUAL_NOT.search(h):
             return "Annual report"
+        if re.search(r"agm results?$|(plc|limited|ltd) (agm|annual general meeting)$|update for (the )?\d{4} (agm|annual general)", h, re.I):
+            return "AGM"
         if DATE_NOTICE.search(h) or AGM_NOT.search(h) and not re.search(r"result|statement|trading|ims|interim management|vot|poll", h, re.I):
             return None
         if re.search(r"covid|coronavirus|arrangement", h, re.I) and TRADING.search(h):
@@ -490,7 +492,7 @@ def classify(head):
         return None
     if NONFINANCIAL.search(h):
         return None
-    if re.search(r"(performance|guidance|earnings) update", h, re.I):
+    if re.search(r"(performance|guidance|earnings) update", h, re.I) and not re.search(r"sustainab|production|esg", h, re.I):
         return "Trading statement"
     if TRADING.search(h) or re.search(r"trading\s*\.{2,}$", h, re.I):
         return "Trading statement"

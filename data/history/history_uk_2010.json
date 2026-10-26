@@ -8,7 +8,7 @@
   "Investegate advanced search / RNS archive (https://www.investegate.co.uk/advanced-search) - event listings and doc_url",
   "Wikipedia 'FTSE 100 Index' revision history, month-end revisions Dec 2009 - Sep 2021 (constituent lists, EPICs) - membership as of event date; revision ids: 2009-12:333106076, 2010-01:333106076, 2010-02:346791023, 2010-03:352789967, 2010-04:358922936, 2010-05:364642176, 2010-06:370812097, 2010-07:370812097, 2010-08:381282374, 2010-09:387083730, 2010-10:392384263, 2010-11:397448764, 2010-12:404705245, 2011-01:410389738, 2011-02:413287809, 2011-03:421358515, 2011-04:426743306, 2011-05:430900472, 2011-06:435165273, 2011-07:442172746, 2011-08:446490685, 2011-09:453104788, 2011-10:456237895, 2011-11:459983732, 2011-12:466554670, 2012-01:474114807, 2012-02:479097069, 2012-03:483263675, 2012-04:488194309, 2012-05:490358759, 2012-06:498876247, 2012-07:504251657, 2012-08:509625906, 2012-09:514572250, 2012-10:520677388, 2012-11:525672158, 2012-12:530056320, 2013-01:532441435, 2013-02:539475571, 2013-03:548037922, 2013-04:552936271, 2013-05:557453240, 2013-06:562117735, 2013-07:564894870, 2013-08:569124836, 2013-09:574625515, 2013-10:578980904, 2013-11:583450191, 2013-12:587093769, 2014-01:593261470, 2014-02:597046284, 2014-03:601103722, 2014-04:606533943, 2014-05:610125512, 2014-06:614569745, 2014-07:618872250, 2014-08:622254684, 2014-09:627129591, 2014-10:628129750, 2014-11:634595535, 2014-12:640406412, 2015-01:643687274, 2015-02:648859463, 2015-03:654316738, 2015-04:659512367, 2015-05:663393262, 2015-06:668886974, 2015-07:670740421, 2015-08:670740421, 2015-09:681395051, 2015-10:687561504, 2015-11:687561504, 2015-12:696184349, 2016-01:702624528, 2016-02:707614708, 2016-03:712709128, 2016-04:716730369, 2016-05:722604782, 2016-06:727393092, 2016-07:730042155, 2016-08:733570270, 2016-09:739844558, 2016-10:746019499, 2016-11:751425633, 2016-12:757426959, 2017-01:762633381, 2017-02:767675528, 2017-03:772725960, 2017-04:776887523, 2017-05:783221036, 2017-06:786843734, 2017-07:792143532, 2017-08:798130073, 2017-09:802597926, 2017-10:805957728, 2017-11:812754182, 2017-12:817804625, 2018-01:823019523, 2018-02:826019546, 2018-03:832366496, 2018-04:834440913, 2018-05:843564322, 2018-06:848053221, 2018-07:851239625, 2018-08:856996292, 2018-09:861875871, 2018-10:866206360, 2018-11:869007611, 2018-12:876182049, 2019-01:880717169, 2019-02:885076217, 2019-03:890371091, 2019-04:893009807, 2019-05:899157563, 2019-06:903438873, 2019-07:907757957, 2019-08:912537316, 2019-09:918409345, 2019-10:923406140, 2019-11:924794494, 2019-12:932599679, 2020-01:936863547, 2020-02:943201410, 2020-03:947134176, 2020-04:952757693, 2020-05:959319383, 2020-06:963682603, 2020-07:968992158, 2020-08:974342765, 2020-09:980290438, 2020-10:985747252, 2020-11:989050793, 2020-12:997258121, 2021-01:1003479466, 2021-02:1008846049, 2021-03:1015298976, 2021-04:1020489972, 2021-05:1025574884, 2021-06:1029835362, 2021-07:1032884236, 2021-08:1041071284, 2021-09:1044917310"
  ],
- "generated_at": "2026-10-26T10:56:52+00:00",
+ "generated_at": "2026-10-26T10:57:31+00:00",
  "rows": [
   {
    "date": "2010-01-05",
@@ -35157,14 +35157,14 @@
   },
   {
    "date": "2015-04-16",
-   "time": "17:30",
+   "time": "11:03",
    "market": "UK",
    "symbol": "RIO",
    "company": "Rio Tinto",
    "type": "AGM",
    "index": "FTSE 100",
-   "title": "Result of AGM",
-   "doc_url": "https://www.investegate.co.uk/announcement/rns/rio-tinto--rio/result-of-agm/3901327",
+   "title": "Rio Tinto plc annual general meeting",
+   "doc_url": "https://www.investegate.co.uk/announcement/rns/rio-tinto--rio/rio-tinto-plc-annual-general-meeting/3900395",
    "doc_source": "exchange",
    "source": "Investegate (RNS archive)"
   },
@@ -36010,14 +36010,14 @@
   },
   {
    "date": "2015-05-07",
-   "time": "08:40",
+   "time": "07:00",
    "market": "UK",
    "symbol": "RIO",
    "company": "Rio Tinto",
    "type": "AGM",
    "index": "FTSE 100",
-   "title": "Results of Rio Tinto Annual General Meetings",
-   "doc_url": "https://www.investegate.co.uk/announcement/rns/rio-tinto--rio/results-of-rio-tinto-annual-general-meetings/4081613",
+   "title": "Rio Tinto Limited annual general meeting",
+   "doc_url": "https://www.investegate.co.uk/announcement/rns/rio-tinto--rio/rio-tinto-limited-annual-general-meeting/4081143",
    "doc_source": "exchange",
    "source": "Investegate (RNS archive)"
   },
@@ -38619,19 +38619,6 @@
    "index": "FTSE 100",
    "title": "Carnival Corp & plc Third Quarter Results",
    "doc_url": "https://www.investegate.co.uk/announcement/prn/carnival--ccl/carnival-corp-amp-plc-third-quarter-results/3976119",
-   "doc_source": "exchange",
-   "source": "Investegate (RNS archive)"
-  },
-  {
-   "date": "2015-09-22",
-   "time": "17:29",
-   "market": "UK",
-   "symbol": "NG.",
-   "company": "National Grid",
-   "type": "Annual report",
-   "index": "FTSE 100",
-   "title": "Annual Report - Group Companies With Debt",
-   "doc_url": "https://www.investegate.co.uk/announcement/rns/national-grid--ng./annual-report-group-companies-with-debt/3976593",
    "doc_source": "exchange",
    "source": "Investegate (RNS archive)"
   },
@@ -42092,14 +42079,14 @@
   },
   {
    "date": "2016-04-14",
-   "time": "18:00",
+   "time": "11:02",
    "market": "UK",
    "symbol": "RIO",
    "company": "Rio Tinto",
    "type": "AGM",
    "index": "FTSE 100",
-   "title": "Result of AGM",
-   "doc_url": "https://www.investegate.co.uk/announcement/rns/rio-tinto--rio/result-of-agm/4279985",
+   "title": "Rio Tinto plc annual general meeting",
+   "doc_url": "https://www.investegate.co.uk/announcement/rns/rio-tinto--rio/rio-tinto-plc-annual-general-meeting/4279015",
    "doc_source": "exchange",
    "source": "Investegate (RNS archive)"
   },
@@ -56685,14 +56672,14 @@
   },
   {
    "date": "2018-05-02",
-   "time": "07:01",
+   "time": "07:00",
    "market": "UK",
    "symbol": "RIO",
    "company": "Rio Tinto",
    "type": "AGM",
    "index": "FTSE 100",
-   "title": "Results of voting at Rio Tinto AGMs",
-   "doc_url": "https://www.investegate.co.uk/announcement/rns/rio-tinto--rio/results-of-voting-at-rio-tinto-agms/5195556",
+   "title": "Rio Tinto Limited AGM",
+   "doc_url": "https://www.investegate.co.uk/announcement/rns/rio-tinto--rio/rio-tinto-limited-agm/5195505",
    "doc_source": "exchange",
    "source": "Investegate (RNS archive)"
   },
@@ -61061,19 +61048,6 @@
    "index": "FTSE 100",
    "title": "Annual Financial Report",
    "doc_url": "https://www.investegate.co.uk/announcement/rns/compass-group--cpg/annual-financial-report/5433402",
-   "doc_source": "exchange",
-   "source": "Investegate (RNS archive)"
-  },
-  {
-   "date": "2018-12-18",
-   "time": "10:00",
-   "market": "UK",
-   "symbol": "BT.A",
-   "company": "BT Group",
-   "type": "AGM",
-   "index": "FTSE 100",
-   "title": "Update on response to 2018 AGM voting outcome",
-   "doc_url": "https://www.investegate.co.uk/announcement/rns/bt-group--bt.a/update-on-response-to-2018-agm-voting-outcome/5470751",
    "doc_source": "exchange",
    "source": "Investegate (RNS archive)"
   },
@@ -67626,19 +67600,6 @@
    "period": "Q3 2019",
    "title": "EVRAZ Q3 2019 TRADING UPDATE",
    "doc_url": "https://www.investegate.co.uk/announcement/rns/evraz--evr/evraz-q3-2019-trading-update/22887",
-   "doc_source": "exchange",
-   "source": "Investegate (RNS archive)"
-  },
-  {
-   "date": "2019-11-04",
-   "time": "12:02",
-   "market": "UK",
-   "symbol": "ANTO",
-   "company": "Antofagasta",
-   "type": "Trading statement",
-   "index": "FTSE 100",
-   "title": "PRODUCTION GUIDANCE UPDATE",
-   "doc_url": "https://www.investegate.co.uk/announcement/rns/antofagasta--anto/production-guidance-update/25823",
    "doc_source": "exchange",
    "source": "Investegate (RNS archive)"
   },
@@ -74455,6 +74416,19 @@
   },
   {
    "date": "2020-09-08",
+   "time": "17:11",
+   "market": "UK",
+   "symbol": "AHT",
+   "company": "Ashtead Group",
+   "type": "AGM",
+   "index": "FTSE 100",
+   "title": "Notice of AGM Results",
+   "doc_url": "https://www.investegate.co.uk/announcement/prn/ashtead-group--aht/notice-of-agm-results/5938752",
+   "doc_source": "exchange",
+   "source": "Investegate (RNS archive)"
+  },
+  {
+   "date": "2020-09-08",
    "time": "07:00",
    "market": "UK",
    "symbol": "AHT",
@@ -75098,19 +75072,6 @@
    "source": "Investegate (RNS archive)"
   },
   {
-   "date": "2020-10-23",
-   "time": "12:52",
-   "market": "UK",
-   "symbol": "PSON",
-   "company": "Pearson",
-   "type": "AGM",
-   "index": "FTSE 100",
-   "title": "Update on Resolution 10 - 2020 AGM vote",
-   "doc_url": "https://www.investegate.co.uk/announcement/rns/pearson--pson/update-on-resolution-10-2020-agm-vote/6384486",
-   "doc_source": "exchange",
-   "source": "Investegate (RNS archive)"
-  },
-  {
    "date": "2020-10-27",
    "time": "07:00",
    "market": "UK",
@@ -75161,19 +75122,6 @@
    "index": "FTSE 100",
    "title": "3rd Quarter Results",
    "doc_url": "https://www.investegate.co.uk/announcement/rns/gsk--gsk/3rd-quarter-results/6389355",
-   "doc_source": "exchange",
-   "source": "Investegate (RNS archive)"
-  },
-  {
-   "date": "2020-10-28",
-   "time": "10:00",
-   "market": "UK",
-   "symbol": "IHG",
-   "company": "InterContinental Hotels Group",
-   "type": "AGM",
-   "index": "FTSE 100",
-   "title": "Update on 2020 Annual General Meeting vote",
-   "doc_url": "https://www.investegate.co.uk/announcement/rns/intercontinental-hotels-group--ihg/update-on-2020-annual-general-meeting-vote/6389099",
    "doc_source": "exchange",
    "source": "Investegate (RNS archive)"
   },
@@ -75267,19 +75215,6 @@
    "index": "FTSE 100",
    "title": "Third Quarter Trading Update",
    "doc_url": "https://www.investegate.co.uk/announcement/rns/wpp--wpp/third-quarter-trading-update/6413796",
-   "doc_source": "exchange",
-   "source": "Investegate (RNS archive)"
-  },
-  {
-   "date": "2020-10-30",
-   "time": "11:00",
-   "market": "UK",
-   "symbol": "AAL",
-   "company": "Anglo American",
-   "type": "Trading statement",
-   "index": "FTSE 100",
-   "title": "Anglo American Sustainability Performance update",
-   "doc_url": "https://www.investegate.co.uk/announcement/rns/anglo-american--aal/anglo-american-sustainability-performance-update/6416419",
    "doc_source": "exchange",
    "source": "Investegate (RNS archive)"
   },
@@ -78277,14 +78212,14 @@
   },
   {
    "date": "2021-04-09",
-   "time": "15:45",
+   "time": "11:00",
    "market": "UK",
    "symbol": "RIO",
    "company": "Rio Tinto",
    "type": "AGM",
    "index": "FTSE 100",
-   "title": "Results of Rio Tinto plc AGM",
-   "doc_url": "https://www.investegate.co.uk/announcement/rns/rio-tinto--rio/results-of-rio-tinto-plc-agm/6451038",
+   "title": "Rio Tinto plc annual general meeting",
+   "doc_url": "https://www.investegate.co.uk/announcement/rns/rio-tinto--rio/rio-tinto-plc-annual-general-meeting/6450412",
    "doc_source": "exchange",
    "source": "Investegate (RNS archive)"
   },
@@ -78573,19 +78508,6 @@
    "index": "FTSE 100",
    "title": "Result of AGM",
    "doc_url": "https://www.investegate.co.uk/announcement/rns/hikma-pharmaceuticals--hik/result-of-agm/6582755",
-   "doc_source": "exchange",
-   "source": "Investegate (RNS archive)"
-  },
-  {
-   "date": "2021-04-26",
-   "time": "12:00",
-   "market": "UK",
-   "symbol": "AAL",
-   "company": "Anglo American",
-   "type": "Trading statement",
-   "index": "FTSE 100",
-   "title": "Anglo American Sustainability Performance Update",
-   "doc_url": "https://www.investegate.co.uk/announcement/rns/anglo-american--aal/anglo-american-sustainability-performance-update/6584072",
    "doc_source": "exchange",
    "source": "Investegate (RNS archive)"
   },
@@ -79508,6 +79430,19 @@
    "index": "FTSE 100",
    "title": "Result of AGM",
    "doc_url": "https://www.investegate.co.uk/announcement/rns/ocado-group--ocdo/result-of-agm/6373847",
+   "doc_source": "exchange",
+   "source": "Investegate (RNS archive)"
+  },
+  {
+   "date": "2021-05-13",
+   "time": "09:30",
+   "market": "UK",
+   "symbol": "PRU",
+   "company": "Prudential",
+   "type": "AGM",
+   "index": "FTSE 100",
+   "title": "Business and Jackson demerger update for 2021 AGM",
+   "doc_url": "https://www.investegate.co.uk/announcement/rns/prudential--pru/business-and-jackson-demerger-update-for-2021-agm/6373015",
    "doc_source": "exchange",
    "source": "Investegate (RNS archive)"
   },
@@ -82202,6 +82137,19 @@
   },
   {
    "date": "2021-09-17",
+   "time": "10:21",
+   "market": "UK",
+   "symbol": "AHT",
+   "company": "Ashtead Group",
+   "type": "AGM",
+   "index": "FTSE 100",
+   "title": "Notice of AGM Results",
+   "doc_url": "https://www.investegate.co.uk/announcement/prn/ashtead-group--aht/notice-of-agm-results/6509557",
+   "doc_source": "exchange",
+   "source": "Investegate (RNS archive)"
+  },
+  {
+   "date": "2021-09-17",
    "time": "12:20",
    "market": "UK",
    "symbol": "AUTO",
@@ -82604,7 +82552,7 @@
    "reason": "no RNS headline on Investegate for that company/year was recognised as Annual report (headline not identifiable by keyword, published under another name, or not announced via RNS)"
   },
   {
-   "scope": "AGM: 51 company-years with full-year FTSE 100 membership: ABF 2021, AHT 2020, AHT 2021, AZN 2011, BHP 2010, BHP 2011, BHP 2012, BHP 2013, BHP 2014, BHP 2015, BHP 2016, BHP 2017, BHP 2018, BHP 2021, BP. 2012, BP. 2013, BP. 2014, BP. 2015, BTRW 2021, CCL 2010, CCL 2012, CCL 2014, CCL 2015, FERG 2010, FERG 2021, HL. 2017, HL. 2021, IAG 2011, ICG 2021, IMB 2010, IMB 2011, IMB 2012, IMB 2013, IMB 2014, MKS 2016, PRU 2021, PSH 2021, SHEL 2010, SHEL 2011, SHEL 2012, SHEL 2013, SHEL 2014, SHEL 2015, SHEL 2016, SHEL 2017, SHEL 2018, SHEL 2019, SHEL 2020, SHEL 2021, SMIN 2021, UU. 2020",
+   "scope": "AGM: 48 company-years with full-year FTSE 100 membership: ABF 2021, AZN 2011, BHP 2010, BHP 2011, BHP 2012, BHP 2013, BHP 2014, BHP 2015, BHP 2016, BHP 2017, BHP 2018, BHP 2021, BP. 2012, BP. 2013, BP. 2014, BP. 2015, BTRW 2021, CCL 2010, CCL 2012, CCL 2014, CCL 2015, FERG 2010, FERG 2021, HL. 2017, HL. 2021, IAG 2011, ICG 2021, IMB 2010, IMB 2011, IMB 2012, IMB 2013, IMB 2014, MKS 2016, PSH 2021, SHEL 2010, SHEL 2011, SHEL 2012, SHEL 2013, SHEL 2014, SHEL 2015, SHEL 2016, SHEL 2017, SHEL 2018, SHEL 2019, SHEL 2020, SHEL 2021, SMIN 2021, UU. 2020",
    "reason": "no RNS headline on Investegate for that company/year was recognised as AGM (headline not identifiable by keyword, published under another name, or not announced via RNS)"
   },
   {
