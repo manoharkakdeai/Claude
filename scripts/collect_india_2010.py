@@ -568,6 +568,21 @@ def company_site_rows(sym, company, intervals, gaps):
         rows.append(row)
     return rows
 
+STATIC_GAPS = [
+    {"scope": "Source: NSE (www.nseindia.com, www1/nsearchives)", "reason": "Not reachable from this network (TLS/HTTP2 resets); NSE announcements, results and board-meeting archives not used. archives.nseindia.com was reachable (current Nifty 50 list, AR zips)."},
+    {"scope": "Source: BSE corporate announcements / results API (api.bseindia.com)", "reason": "HTTP 403 (Akamai 'Access Denied') to automated reads; not worked around. Only static BSE files (annual report PDFs, attachment PDFs) were read."},
+    {"scope": "Source: Screener announcements search", "reason": "Requires a login; only the public Documents lists (annual reports, concalls) were used."},
+    {"scope": "Index: Sensex membership 2010-2021", "reason": "No retrievable BSE/Asia Index change notices (asiaindex.co.in connection reset, BSE notices are API-driven). Rows carry only 'Nifty 50' where established; Sensex membership is not asserted."},
+    {"scope": "Index: Nifty 50 membership method", "reason": "Official current list (archives.nseindia.com) rolled back through the dated replacement table on Wikipedia (which cites NSE Indices IndexInclExcl.xls and NSE/IISL press releases); the official IndexInclExcl.xls itself and niftyindices.com press releases were unreachable (niftyindices.com timeout, web.archive.org reset). Rollback was internally consistent (50 members at every step)."},
+    {"scope": "Universe: companies only in Sensex (never Nifty 50) 2010-2021", "reason": "Not identifiable without Sensex history; universe is the 85 Nifty 50 members of 2010-01..2021-09."},
+    {"scope": "Investor day / analyst meets (all companies)", "reason": "No dated listing reachable (BSE/NSE announcement feeds blocked); not collected."},
+    {"scope": "Earnings call 2010-2015 (most companies)", "reason": "Screener's concall list is sparse before ~2016 and gives month only (dates are YYYY-MM); pre-2016 calls exist only where a company-site archive was parsed (Wipro, Hindalco, Tech Mahindra, Grasim)."},
+    {"scope": "Annual report FY2009-FY2012 (most companies)", "reason": "Screener lists roughly the last 13-14 reports per company; earlier reports (and their AGMs) are not listed and BSE's AR archive index is API-driven (403)."},
+    {"scope": "Annual report dates", "reason": "Date is the exchange file's Last-Modified (BSE bseplus / NSE archives upload); files re-stamped by later bulk re-uploads are rejected by a plausibility check (must fall in FY or FY+1) and logged as gaps."},
+    {"scope": "Company websites blocking automated reads", "reason": "Infosys, TCS, HUL, Nestle India, Hero MotoCorp, Zee returned 403; hcltech.com, bpcl.in, eichermotors.com, yesbank.in and bhartiairtel.in timed out/reset at time of collection; other sites were reachable but had no static, parseable results archive."},
+    {"scope": "Delisted/merged companies (CAIRN, STER, RANBAXY, HDFC, IDFC etc.)", "reason": "Covered only to the extent Screener still lists their documents; no company websites remain."},
+]
+
 
 def main():
     ap = argparse.ArgumentParser()
@@ -671,6 +686,12 @@ def main():
             companies.add(sym)
         print(f"{sym}: {got} rows", file=sys.stderr)
 
+    with_results = {r["symbol"] for r in rows if r["type"] == "Results"}
+    gaps.extend(STATIC_GAPS)
+    gaps.append({"scope": "Results / " + ", ".join(s for s in universe if s not in with_results),
+                 "reason": "No dated results source reachable: BSE announcements API (api.bseindia.com) returns 403 to automated reads, "
+                           "NSE (www.nseindia.com) unreachable, Screener announcement search needs a login, and these companies' own "
+                           "websites have no static, parseable 2010-2021 results archive (JS-rendered, 403, or not found in scouting)."})
     rows.sort(key=lambda r: (r["date"], r["symbol"], r["type"]))
     out = {
         "market": MARKET,
