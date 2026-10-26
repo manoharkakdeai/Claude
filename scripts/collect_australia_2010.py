@@ -128,14 +128,20 @@ def load_days(cache):
 
 
 # ----------------------------------------------------------------------------- notices
+SP_HEAD = re.compile(r"^\s*ZSP\s*:|^\s*(SandP|S&P DJI|S&P DJ Indices|S&P Dow Jones Indices|S and P)\b.*"
+                     r"(remove|rebalanc|treatment|replace|review)|to be removed from the S&P/ASX", re.I)
+
+
 def notices(cache):
     rows, _ = load_days(cache)
     ndir = os.path.join(cache, "zsp")
     os.makedirs(ndir, exist_ok=True)
     zsp = {}
     for r in rows:
-        if r["code"] == "ZSP":
-            zsp[r["ids"]] = r
+        # S&P index notices: released under code ZSP, and occasionally only under the affected company with
+        # the headline prefixed "ZSP:" or in S&P's own wording
+        if r["code"] == "ZSP" or SP_HEAD.search(r["headline"]):
+            zsp.setdefault(r["ids"], r)
     print(f"{len(zsp)} ZSP announcements", flush=True)
     for ids, r in sorted(zsp.items(), key=lambda kv: kv[1]["date"]):
         pdf = os.path.join(ndir, f"{ids}.pdf")
@@ -384,6 +390,9 @@ def fetch_anchor(cache):
     return out
 
 
+MARCH_2020_POSTPONED = (dt.date(2020, 3, 1), dt.date(2020, 3, 20))
+
+
 def load_changes(cache):
     ndir = os.path.join(cache, "zsp")
     changes, unparsed = [], []
@@ -397,6 +406,9 @@ def load_changes(cache):
             continue
         res = parse_notice(open(txtp, errors="replace").read())
         mentions200 = "ASX 200" in open(txtp, errors="replace").read()
+        txt = open(txtp, errors="replace").read()
+        if re.search(r"S&P\s*/\s*ASX\s+200(\s+Index)?\s*[\u2013\u2014:-]?\s*No\s+change", txt, re.I):
+            mentions200 = False  # explicit "no change" for the S&P/ASX 200
         if not res and mentions200 and not re.search(r"Index Values|Consultation|Methodology|Results|"
                                                       r"Sector|Confirmation|Annual|Market Cap", meta["headline"], re.I):
             unparsed.append((meta, "mentions S&P/ASX 200 but no change rows parsed"))
@@ -404,6 +416,10 @@ def load_changes(cache):
             rel = dt.date.fromisoformat(meta["date"])
             if eff is None:
                 eff = rel + dt.timedelta(days=1)
+            if MARCH_2020_POSTPONED[0] <= rel <= MARCH_2020_POSTPONED[1] and eff == dt.date(2020, 3, 23):
+                # S&P DJI postponed the March 2020 review (ZSP notices 02216370, 02221274); its changes
+                # took effect prior to the open on 22 June 2020
+                eff = dt.date(2020, 6, 22)
             if eff < rel - dt.timedelta(days=3):  # e.g. a notice of Mar 2011 stating "March 9, 2010"
                 try:
                     eff = eff.replace(year=rel.year)
@@ -422,6 +438,27 @@ def load_changes(cache):
             continue
         dedup.append(c)
     return dedup, unparsed
+
+
+def correct_anchor(anchor, changes, seen_codes_2021):
+    """S&P notices take precedence over the Wikipedia table for changes in the 24 months before the
+    anchor date: a code whose latest such change is a removal is dropped; one whose latest change is an
+    addition is added if it still has ASX announcements under that code in 2021 (else it changed code)."""
+    fixed, notes = dict(anchor), []
+    last = {}
+    for c in sorted(changes, key=lambda c: c["eff"]):
+        if c["eff"] <= ANCHOR_DATE:
+            last[c["code"]] = c
+    for code, c in last.items():
+        if c["eff"] < ANCHOR_DATE - dt.timedelta(days=730):
+            continue
+        if c["act"] == "remove" and code in fixed:
+            del fixed[code]
+            notes.append(f"dropped {code} (S&P removal effective {c['eff']}, notice {c['released']})")
+        elif c["act"] == "add" and code not in fixed and code in seen_codes_2021:
+            fixed[code] = c["name"]
+            notes.append(f"added {code} (S&P addition effective {c['eff']}, notice {c['released']})")
+    return fixed, notes
 
 
 def reconstruct(anchor, changes):
@@ -479,24 +516,33 @@ def member_set(timeline, d):
 
 # ----------------------------------------------------------------------------- classification
 EXCL_NOTICE = re.compile(r"\b(date|dates|timing|teleconference|webcast|web cast|invitation|reminder|advance notice|"
-                         r"conference call|briefing details|to be released|release of|notification of|"
-                         r"live stream|livestream|dial[- ]in|audio)\b", re.I)
+                         r"conference call|briefing details|to be released|release of|notification|notice of|"
+                         r"live stream|livestream|dial[- ]in|audio|arrangements|transcript|template|templates|"
+                         r"excel|aware letter|response to|available|availability|upcoming|schedule)\b", re.I)
 AMEND = re.compile(r"\b(amend|amended|correct|corrected|correction|revised|replacement|erratum|clarif|updated|"
                    r"update to|restated)\w*", re.I)
 RES0 = re.compile(r"appendi(?:x|ces)\s*4\s*[de]\b|app(?:x|\.)?\s*4\s*[de]\b|\b4[de]\b.*\b(report|accounts|results)\b|"
                   r"preliminary\s+final\s+(report|results)|half[- ]?year(?:ly)?\s+(financial\s+)?(report|accounts)|"
                   r"interim\s+financial\s+(report|statements)|financial\s+report\s+for\s+the\s+half|"
                   r"(full|half)[- ]?year(ly)?\s+(statutory\s+)?(accounts|report|financial\s+(report|statements))|"
-                  r"statutory\s+accounts|condensed\s+financial\s+report|financial\s+report\s+(-\s+)?half[- ]year", re.I)
+                  r"statutory\s+accounts|condensed\s+financial\s+report|financial\s+report\s+(-\s+)?half[- ]year|"
+                  r"^\s*([\w&.'-]+\s+)?(19|20)\d\d\s+financial\s+report\s*$|\binterim\s+report\b|"
+                  r"\b(1h|h1|hy|2h|fy)\s*'?\d{2,4}\s+(financial|investor)\s+report", re.I)
 RES1 = re.compile(r"\b(full|half|first[- ]half|second[- ]half|interim|annual|final|fy|hy|[12]h|h[12])"
                   r"[- ]?(year|yr)?\s*('?(fy)?\d{2,4}\s*)?(financial\s+)?(results?|earnings|profit|accounts)\b|"
-                  r"\bresults?\s+for\s+the\s+(half|full|year|six|twelve|financial|period)|"
+                  r"\bresults?\s+for\s+(the\s+)?(half|full|year|six|twelve|financial|period|quarter|qtr|first|second|"
+                  r"third|fourth|nine|three|fiscal|\d{1,2}\s+months)|"
+                  r"\b(half|full|financial|fiscal)[- ]year\b.{0,30}\bresults?\b|"
+                  r"^\s*([\w&.'-]+\s+){0,3}(19|20)\d\d\s+(full[- ]year\s+|half[- ]year\s+)?results?\s*$|"
+                  r"\bresults?\s+presentation\b|"
                   r"\b(fy|hy|[12]h|h[12])\s*'?\d{2,4}\s+(results?|earnings|profit)|"
                   r"\b(profit|results?|earnings)\s+(announcement|release|report)\b|"
                   r"\b(19|20)\d\d\s+(full|half|interim|annual)[- ]year\s+(results?|profit)|"
                   r"^\s*(\d{4}\s+)?results\s+presentation|"
                   r"(half|full)[- ]?year(ly)?\s+(investor\s+)?(presentation|media\s+release)", re.I)
-RES_BAD = re.compile(r"\bresults?\s+of\b|anticipat|expected|guidance|forecast|outlook|market update|upgrade|"
+RES_BAD = re.compile(r"\bresults?\s+of\b|\bagm\b|annual general|to announce|will announce|details|impact|letter|"
+                     r"calendar|"
+                     r"anticipat|expected|guidance|forecast|outlook|market update|upgrade|"
                      r"downgrade|unaudited|estimate|drill|assay|exploration|trial|study|clinical|scheme|offer|meeting|"
                      r"retail|placement|entitlement|buy-?back|tender|drilling|bookbuild|sale|spp|"
                      r"share purchase|vote|ballot|auction|fund[s]?\b.*\bresults? of", re.I)
@@ -527,7 +573,7 @@ QTR = re.compile(r"quarterly\s+(activities|activity|report|cash\s*-?\s*flow|prod
                  r"\b(first|second|third|fourth|march|june|september|december|mar|jun|sep|sept|dec)\s+(\d{4}\s+)?"
                  r"quarter(ly)?\s+(\d{4}\s+)?(activities|activity|report|production|operations|operational|review|"
                  r"update|results)|^\s*quarterly\s+report\s*$|\bq[1-4]\s+(fy)?\d{2,4}\s+(activities|production|report)", re.I)
-QTR_BAD = re.compile(r"monthly|distribution|dividend|interest|coupon|investment update|\bnta\b|portfolio|fund|"
+QTR_BAD = re.compile(r"announce|results|monthly|filed|form 10|distribution|dividend|interest|coupon|investment update|\bnta\b|portfolio|fund|"
                      r"options|teleconference|webcast|conference call|date|briefing|presentation", re.I)
 
 PERIOD_RE = re.compile(r"\b(?P<q>Q[1-4])\s*(?P<qfy>FY)?\s*'?(?P<qy>\d{2,4})\b|"
@@ -554,7 +600,11 @@ def extract_period(headline):
             h = {"1H": "H1", "H1": "H1", "2H": "H2", "H2": "H2", "HY": "H1"}[g["h"].upper()]
             return f"{h} FY{y % 100:02d}" if 2009 <= y <= 2022 else None
         y = norm_year(g["fy"])
-        return f"FY{y % 100:02d}" if 2009 <= y <= 2022 else None
+        if not 2009 <= y <= 2022:
+            return None
+        if re.search(r"half[- ]?year|interim|\b4d\b|\bhy\b|1st half|first half", headline, re.I):
+            return f"H1 FY{y % 100:02d}"
+        return f"FY{y % 100:02d}"
     except (TypeError, ValueError):
         return None
 
@@ -562,6 +612,9 @@ def extract_period(headline):
 def classify(h):
     """Return list of (type, priority, kind) for a headline. Lower priority = better document."""
     out = []
+    h = h.replace("_", " ").replace("`", "'")
+    if SP_HEAD.search(h):  # S&P index notices are also tagged with every affected company's code
+        return out
     if RES0.search(h) and not EXCL_NOTICE.search(h):
         out.append(("Results", 3 if AMEND.search(h) else 0, "results"))
     elif RES1.search(h) and not RES_BAD.search(h) and not EXCL_NOTICE.search(h):
@@ -582,7 +635,8 @@ def classify(h):
     if AR.search(h) and not AR_BAD.search(h):
         out.append(("Annual report", 0, "annual_report"))
     if INVDAY.search(h) and not EXCL_NOTICE.search(h) and not re.search(
-            r"presenting at|conference|confirms|to host|will host|details|virtual investor day|switzer", h, re.I):
+            r"presenting at|conference|confirms|to host|will host|details|virtual investor day|switzer|announces|"
+            r"to be held|upcoming", h, re.I):
         out.append(("Investor day", 0, "investor_day"))
     if QTR.search(h) and not QTR_BAD.search(h):
         out.append(("Filing", 0, "quarterly"))
@@ -606,6 +660,31 @@ def cluster(items, gap_days):
     return groups
 
 
+def window_cluster(items, days):
+    """items sorted by date; a new group starts once a date is more than `days` after the group's first."""
+    groups = []
+    for it in sorted(items, key=lambda r: (r["date"], r["time"] or "")):
+        if groups and (_d(it["date"]) - _d(groups[-1][0]["date"])).days <= days:
+            groups[-1].append(it)
+        else:
+            groups.append([it])
+    return groups
+
+
+HDATE_RE = re.compile(r"\b(\d{1,2})(?:st|nd|rd|th)?\s+(January|February|March|April|May|June|July|August|September|"
+                      r"October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\.?,?\s+(20\d\d)\b", re.I)
+
+
+def future_dated(r):
+    """Headline names a date after its release date, e.g. 'FPH announce half year results 24 November 2010'
+    released on 9 Nov: a notice of an upcoming event, not the event."""
+    for d, mon, y in HDATE_RE.findall(r["headline"]):
+        x = _mkdate(mon, d, y)
+        if x and x > _d(r["date"]):
+            return True
+    return False
+
+
 def best(group):
     return sorted(group, key=lambda r: (r["prio"], r["date"], r["time"] or "99", r["ids"]))[0]
 
@@ -614,7 +693,16 @@ def build(cache):
     rows, missing_days = load_days(cache)
     anchor = fetch_anchor(cache)
     changes, unparsed = load_changes(cache)
+    seen21 = {r["code"] for r in rows if r["date"] >= "2021-01-01"}
+    anchor, anchor_notes = correct_anchor(anchor, changes, seen21)
     timeline, issues = reconstruct(anchor, changes)
+    # a removal that finds the code already in the earlier set means a re-addition was missed: the code's
+    # membership between that removal and its next recorded change is unknown, so it is treated as non-member
+    uncertain = {}
+    for i in issues:
+        if i["problem"].startswith("removal"):
+            nxt = [c["eff"] for c in changes if c["code"] == i["code"] and c["eff"] > i["eff"]]
+            uncertain.setdefault(i["code"], []).append((i["eff"], min(nxt) if nxt else END + dt.timedelta(days=1)))
 
     names = {}  # code -> list of (date, name)
     for code, nm in anchor.items():
@@ -633,17 +721,32 @@ def build(cache):
     seen = {}
     for r in rows:
         seen.setdefault(r["code"], []).append(r["date"])
-    diag = []
-    for i, (f, sset) in enumerate(timeline):
-        to = timeline[i + 1][0] if i + 1 < len(timeline) else END
-        lo, hi = max(f, START), min(to, END)
-        if (hi - lo).days < 45:
+    # member spans per code (contiguous, clipped to START..END)
+    spans = {}
+    for k, (f, sset) in enumerate(timeline):
+        to = timeline[k + 1][0] if k + 1 < len(timeline) else END + dt.timedelta(days=1)
+        lo, hi = max(f, START), min(to, END + dt.timedelta(days=1))
+        if lo >= hi:
             continue
-        for code in sorted(sset):
-            ds = [x for x in seen.get(code, []) if lo.isoformat() <= x < hi.isoformat()]
-            if not ds:
-                diag.append({"code": code, "from": str(lo), "to": str(hi), "problem": "no ASX announcements in interval"})
-
+        for code in sset:
+            sp = spans.setdefault(code, [])
+            if sp and sp[-1][1] == lo:
+                sp[-1][1] = hi
+            else:
+                sp.append([lo, hi])
+    # spans with no ASX announcements under the code: before the code's first or after its last
+    # announcement in the archive (the archive drops delisted issuers and pre-code-change history)
+    diag = []
+    for code, sp in sorted(spans.items()):
+        ds = sorted(seen.get(code, []))
+        first = _d(ds[0]) if ds else None
+        last = _d(ds[-1]) if ds else None
+        for lo, hi in sp:
+            parts = [(lo, hi)] if first is None else [(lo, min(hi, first)), (max(lo, last + dt.timedelta(days=1)), hi)]
+            for a, b in parts:
+                if (b - a).days > 30:
+                    diag.append({"code": code, "from": str(a), "to": str(b - dt.timedelta(days=1)),
+                                 "problem": "no ASX announcements under this code"})
     cand = {}
     for r in rows:
         if r["code"] not in universe or not (START.isoformat() <= r["date"] <= END.isoformat()):
@@ -652,16 +755,21 @@ def build(cache):
             cand.setdefault((r["code"], kind), []).append(dict(r, type=typ, prio=prio, kind=kind))
 
     def member(code, date):
-        return code in member_set(timeline, _d(date))
+        d = _d(date)
+        if any(a <= d < b for a, b in uncertain.get(code, [])):
+            return False
+        return code in member_set(timeline, d)
 
     events = []
 
     def emit(r, typ, extra_heads=()):
         if not member(r["code"], r["date"]):
             return
-        period = extract_period(r["headline"])
-        for h in extra_heads:
-            period = period or extract_period(h)
+        period = None
+        if typ in ("Results", "Filing"):
+            period = extract_period(r["headline"])
+            for h in extra_heads:
+                period = period or extract_period(h)
         ev = {"date": r["date"], "market": "Australia", "index": INDEX, "symbol": r["code"],
               "company": name_for(r["code"], _d(r["date"])), "type": typ}
         if r.get("time"):
@@ -675,44 +783,37 @@ def build(cache):
     codes = sorted({k[0] for k in cand})
     for code in codes:
         get_ = lambda kind: sorted(cand.get((code, kind), []), key=lambda r: (r["date"], r["time"] or ""))
-        # Results
-        groups = [g for g in cluster(get_("results"), 0)]
-        keep = []
-        for g in groups:
-            b = best(g)
-            keep.append((b, [x["headline"] for x in g]))
-        final = []
-        for b, heads in keep:
-            near = [o for o, _ in keep if o is not b and abs((_d(o["date"]) - _d(b["date"])).days) <= (30 if b["prio"] == 3 else 7)]
-            if b["prio"] >= 2 and any(o["prio"] < b["prio"] for o in near):
-                continue
-            final.append((b, heads))
-        for b, heads in final:
-            emit(b, "Results", heads)
+        # Results: one row per reporting event. Releases within 60 days of the first one (results
+        # announcement, presentation, later glossy half-year report) are one event, dated by the earliest
+        # primary release (4D/4E/results announcement; a presentation only when nothing else exists).
+        res = [r for r in get_("results") if not future_dated(r)]
+        for g in window_cluster(res, 60):
+            prim = [r for r in g if r["prio"] <= 1] or [r for r in g if r["prio"] == 2] or g
+            first_day = min(r["date"] for r in prim)
+            b = best([r for r in prim if r["date"] == first_day])
+            emit(b, "Results", [x["headline"] for x in g])
         # AGM
         notices_ = [_d(r["date"]) for r in get_("agm_notice")]
-        sure = get_("agm_results") + get_("agm_address")
+        sure = [r for r in get_("agm_results") + get_("agm_address") if not future_dated(r)]
         gated = [r for r in get_("meeting_results") + get_("chair_address")
                  if any(0 <= (_d(r["date"]) - n).days <= 100 for n in notices_)]
-        sure_groups = cluster(sorted(sure, key=lambda r: r["date"]), 2)
-        gated_groups = [g for g in cluster(sorted(gated, key=lambda r: r["date"]), 2)
+        sure_groups = window_cluster(sorted(sure, key=lambda r: r["date"]), 60)
+        gated_groups = [g for g in window_cluster(sorted(gated, key=lambda r: r["date"]), 60)
                         if not any(abs((_d(g[0]["date"]) - _d(sg[0]["date"])).days) <= 150 for sg in sure_groups)]
         for g in sure_groups + gated_groups:
-            b = best(g)
             first = min(g, key=lambda r: r["date"])
-            row = dict(b, date=first["date"], time=b["time"] if b["date"] == first["date"] else None)
+            b = best([r for r in g if r["date"] == first["date"]])
+            row = b
             emit(row, "AGM", [x["headline"] for x in g])
-        # Annual report
-        ars = get_("annual_report")
-        for g in cluster(ars, 0):
-            b = sorted(g, key=lambda r: (bool(re.search(r"20-?F", r["headline"])), r["time"] or "", r["ids"]))[0]
-            if re.search(r"20-?F", b["headline"]) and any(
-                    o is not b and not re.search(r"20-?F", o["headline"]) and abs((_d(o["date"]) - _d(b["date"])).days) <= 120
-                    for o in ars):
-                continue
+        # Annual report: one per 60-day window (annual report, concise report, 20-F), earliest non-20-F copy
+        ars = [r for r in get_("annual_report") if not future_dated(r)]
+        for g in window_cluster(ars, 60):
+            non20f = [r for r in g if not re.search(r"20-?F", r["headline"])] or g
+            first_day = min(r["date"] for r in non20f)
+            b = sorted([r for r in non20f if r["date"] == first_day], key=lambda r: (r["time"] or "", r["ids"]))[0]
             emit(b, "Annual report", [x["headline"] for x in g])
         # Investor day
-        for g in cluster(get_("investor_day"), 3):
+        for g in cluster([r for r in get_("investor_day") if not future_dated(r)], 3):
             emit(min(g, key=lambda r: (r["date"], r["time"] or "")), "Investor day", [x["headline"] for x in g])
         # Quarterly filings
         for g in cluster(get_("quarterly"), 5):
@@ -726,6 +827,11 @@ def build(cache):
     events = sorted(uniq.values(), key=lambda e: (e["date"], e["symbol"], e["type"]))
 
     gaps = build_gaps(missing_days, unparsed, issues, diag, timeline)
+    for n in anchor_notes:
+        gaps.append({"scope": "membership anchor", "reason": "Wikipedia anchor list corrected from S&P notices: " + n})
+    for code, spans in uncertain.items():
+        gaps.append({"scope": f"symbol {code}", "reason": "index membership unknown (missed S&P re-addition) for "
+                     + "; ".join(f"{a}..{b}" for a, b in spans) + "; no rows emitted for those dates"})
     doc = {
         "market": "Australia",
         "range": {"from": "2010-01", "to": "2021-09"},
@@ -780,16 +886,34 @@ def build_gaps(missing_days, unparsed, issues, diag, timeline):
     for m, why in unparsed:
         gaps.append({"scope": f"S&P notice {m['date']} idsId {m['ids']} ({m['headline']})", "reason": why})
     for i in issues:
-        gaps.append({"scope": f"membership {i['code']} {i['act']} eff {i['eff']}",
-                     "reason": f"inconsistent with reconstructed set ({i['problem']}); notice {i['released']} "
-                               f"'{i['headline']}'. Membership for this code around this date may be wrong."})
+        if i["problem"].startswith("addition"):
+            why = ("the S&P addition is not matched by membership in the later reconstructed set (the code later "
+                   "changed, the company delisted, or an S&P removal notice was not found); the code is treated as "
+                   "a non-member from this addition until its next recorded change, so rows may be missing")
+        else:
+            why = ("the code was already in the earlier reconstructed set (an S&P re-addition notice was not "
+                   "found or the removal was re-announced); membership after this removal is treated as unknown")
+        gaps.append({"scope": f"membership {i['code']} {i['act']} effective {i['eff']}",
+                     "reason": why + f"; notice {i['released']} '{i['headline']}'"})
+    gaps.append({"scope": "delisted / renamed index members (all event types)", "reason":
+                 "The ASX public announcement search only serves announcements of issuers that are listed today, "
+                 "under their current ASX code and only from the date they adopted it (e.g. AGL from Dec 2014, AZJ "
+                 "from Dec 2012; nothing for WPL/Woodside now WDS, OSH, SYD, NCM, AWC, BLD, CSR, ABC, Asciano AIO, "
+                 "Foster's FGL, ...). Their 2010-2021 announcements are not listed by date or by code, so events of "
+                 "S&P/ASX 200 members that have since delisted or changed code were not collected. Each affected "
+                 "symbol and span is listed below."})
     by_code = {}
     for d in diag:
-        by_code.setdefault(d["code"], []).append(f"{d['from']}..{d['to']}")
+        spans = by_code.setdefault(d["code"], [])
+        if spans and _d(d["from"]) <= _d(spans[-1][1]) + dt.timedelta(days=60):
+            spans[-1][1] = max(spans[-1][1], d["to"])
+        else:
+            spans.append([d["from"], d["to"]])
     for code, spans in sorted(by_code.items()):
         gaps.append({"scope": f"symbol {code}", "reason":
-                     "reconstructed as an index member but no ASX announcements under this code in "
-                     + "; ".join(spans) + " (likely an ASX code change or a missed index change); no rows for those spans"})
+                     "reconstructed as an S&P/ASX 200 member under this code but the ASX archive has no "
+                     "announcements under it for " + "; ".join(f"{a}..{b}" for a, b in spans)
+                     + " (issuer since delisted or code changed, or not listed under this code then); no rows"})
     return gaps
 
 

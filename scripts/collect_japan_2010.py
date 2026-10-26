@@ -108,6 +108,7 @@ _session.verify = "/root/.ccr/ca-bundle.crt" if os.path.exists("/root/.ccr/ca-bu
 _last = [0.0]
 STATS = {"fetched": 0, "cached": 0, "failed": 0}
 FAILED = set()
+_consec_fail = [0]
 
 
 def _cache_path(url):
@@ -141,6 +142,7 @@ def fetch(url, binary=False, retries=3):
             with gzip.open(p, "wb") as f:
                 f.write(r.content)
             STATS["fetched"] += 1
+            _consec_fail[0] = 0
             return r.content if binary else r.content.decode("utf-8", "replace")
         if r.status_code == 404:
             os.makedirs(os.path.dirname(p), exist_ok=True)
@@ -155,6 +157,12 @@ def fetch(url, binary=False, retries=3):
         time.sleep(4 * (attempt + 1))
     STATS["failed"] += 1
     FAILED.add(url)
+    _consec_fail[0] += 1
+    if _consec_fail[0] >= 3:
+        # source is struggling: back off for a while before continuing
+        print("  ! several consecutive failures; cooling off 120s", file=sys.stderr)
+        time.sleep(120)
+        _consec_fail[0] = 0
     return None
 
 
