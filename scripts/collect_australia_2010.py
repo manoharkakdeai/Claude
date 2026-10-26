@@ -87,12 +87,13 @@ def parse_day(text):
     return rows
 
 
-def sweep(cache, reverse=False):
+def sweep(cache, reverse=False, start=None):
     """Fetch every weekday's full listing. reverse=True walks END->START (a second worker can
     run in reverse; both skip days already cached)."""
     ddir = os.path.join(cache, "days")
     os.makedirs(ddir, exist_ok=True)
-    days = [SWEEP_START + dt.timedelta(days=i) for i in range((END - SWEEP_START).days + 1)]
+    first = start or SWEEP_START
+    days = [first + dt.timedelta(days=i) for i in range((END - first).days + 1)]
     for day in (reversed(days) if reverse else days):
         if day.weekday() < 5:
             raw = os.path.join(ddir, f"{day}.html.gz")
@@ -484,13 +485,17 @@ AMEND = re.compile(r"\b(amend|amended|correct|corrected|correction|revised|repla
                    r"update to|restated)\w*", re.I)
 RES0 = re.compile(r"appendi(?:x|ces)\s*4\s*[de]\b|app(?:x|\.)?\s*4\s*[de]\b|\b4[de]\b.*\b(report|accounts|results)\b|"
                   r"preliminary\s+final\s+(report|results)|half[- ]?year(?:ly)?\s+(financial\s+)?(report|accounts)|"
-                  r"interim\s+financial\s+(report|statements)|financial\s+report\s+for\s+the\s+half", re.I)
+                  r"interim\s+financial\s+(report|statements)|financial\s+report\s+for\s+the\s+half|"
+                  r"(full|half)[- ]?year(ly)?\s+(statutory\s+)?(accounts|report|financial\s+(report|statements))|"
+                  r"statutory\s+accounts|condensed\s+financial\s+report|financial\s+report\s+(-\s+)?half[- ]year", re.I)
 RES1 = re.compile(r"\b(full|half|first[- ]half|second[- ]half|interim|annual|final|fy|hy|[12]h|h[12])"
                   r"[- ]?(year|yr)?\s*('?(fy)?\d{2,4}\s*)?(financial\s+)?(results?|earnings|profit|accounts)\b|"
                   r"\bresults?\s+for\s+the\s+(half|full|year|six|twelve|financial|period)|"
                   r"\b(fy|hy|[12]h|h[12])\s*'?\d{2,4}\s+(results?|earnings|profit)|"
                   r"\b(profit|results?|earnings)\s+(announcement|release|report)\b|"
-                  r"\b(19|20)\d\d\s+(full|half|interim|annual)[- ]year\s+(results?|profit)", re.I)
+                  r"\b(19|20)\d\d\s+(full|half|interim|annual)[- ]year\s+(results?|profit)|"
+                  r"^\s*(\d{4}\s+)?results\s+presentation|"
+                  r"(half|full)[- ]?year(ly)?\s+(investor\s+)?(presentation|media\s+release)", re.I)
 RES_BAD = re.compile(r"\bresults?\s+of\b|anticipat|expected|guidance|forecast|outlook|market update|upgrade|"
                      r"downgrade|unaudited|estimate|drill|assay|exploration|trial|study|clinical|scheme|offer|meeting|"
                      r"retail|placement|entitlement|buy-?back|tender|drilling|bookbuild|sale|spp|"
@@ -511,7 +516,7 @@ GEN_RES = re.compile(r"^\s*results?\s+of\s+(the\s+)?(\d{4}\s+)?meeting\b|^\s*mee
                      r"^\s*results\s+of\s+(the\s+)?general\s+meeting", re.I)
 NOT_AGM = re.compile(r"extraordinary|\begm\b|scheme|court|bondholder|noteholder|unitholder meeting of|"
                      r"general meeting of .*holders|class meeting|notice of general meeting", re.I)
-AR = re.compile(r"\bannual\s+(financial\s+)?report\b|\b20-?F\b", re.I)
+AR = re.compile(r"\bannual\s+(financial\s+)?reports?\b|\b20-?F\b", re.I)
 AR_BAD = re.compile(r"semi|letter|availab|access|online|appendix\s*4g|corporate governance|sustainab|notice of|"
                     r"proxy|date|lodg(e)?ment of|electronic|reminder|election|mailing|shareholder communication|"
                     r"despatch|dispatch|errat|half[- ]year", re.I)
@@ -793,9 +798,10 @@ if __name__ == "__main__":
     ap.add_argument("stage", choices=["sweep", "notices", "build", "all"])
     ap.add_argument("--cache", default=DEFAULT_CACHE)
     ap.add_argument("--reverse", action="store_true", help="sweep from the end of the range backwards")
+    ap.add_argument("--start", type=dt.date.fromisoformat, help="sweep starting at this date (extra worker)")
     a = ap.parse_args()
     if a.stage in ("sweep", "all"):
-        sweep(a.cache, a.reverse)
+        sweep(a.cache, a.reverse, a.start)
     if a.stage in ("notices", "all"):
         notices(a.cache)
     if a.stage in ("build", "all"):
