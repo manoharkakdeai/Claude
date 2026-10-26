@@ -1,5 +1,5 @@
 {
- "market": "India, UK, Japan, South Korea, Australia (IPOs and prospectuses)",
+ "market": "India, UK, Japan, South Korea, Australia, US (IPOs and prospectuses)",
  "range": {
   "from": "2010-01",
   "to": "2021-09"
@@ -9,9 +9,10 @@
   "London Stock Exchange issuer-list archives (docs.londonstockexchange.com)",
   "JPX Monthly Statistics Report, Changes in Listed Companies (www.jpx.co.jp)",
   "DART detailed search (dart.fss.or.kr)",
-  "ASX listed companies directory (asx.api.markitdigital.com / www.asx.com.au)"
+  "ASX listed companies directory (asx.api.markitdigital.com / www.asx.com.au)",
+  "SEC EDGAR full-index form.idx and submissions data (www.sec.gov / data.sec.gov)"
  ],
- "generated_at": "2026-10-26T11:38:12+00:00",
+ "generated_at": "2026-10-26T14:40:39+00:00",
  "rows": [
   {
    "date": "2010-01-01",
@@ -59218,10 +59219,6 @@
  ],
  "gaps": [
   {
-   "scope": "US IPOs and S-1 filings (all years)",
-   "reason": "Out of scope for now: sec.gov blocks requests whose User-Agent lacks a contact email, and no email may be used"
-  },
-  {
    "scope": "India IPO listing dates (BSE and NSE, all years)",
    "reason": "api.bseindia.com answers Akamai 'Access Denied' to the tracker User-Agent (public-issue archive is served only via that API); www.nseindia.com not reachable from this environment"
   },
@@ -59304,6 +59301,10 @@
   {
    "scope": "South Korea follow-on offerings",
    "reason": "842 filings excluded as follow-ons: filer had KRX exchange disclosures (remark 유/코/넥) in the 12 months before filing"
+  },
+  {
+   "scope": "US IPOs and S-1/F-1 filings (all years)",
+   "reason": "Not collected in this run: SEC requires a contact address in the User-Agent and none was supplied (SEC_CONTACT unset)"
   }
  ]
 }

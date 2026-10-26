@@ -18,7 +18,12 @@ Sources (probed for reachability before use; unreachable ones become gaps):
   Australia  ASX listed-companies directory (listing date of companies still
              listed today) -> type "IPO".
 
-Usage:  python3 -I scripts/collect_ipos_2010.py [--markets india,uk,japan,korea,australia]
+  US         SEC EDGAR full-index form.idx (S-1/F-1 originals -> "Prospectus",
+             first 424B4 -> "IPO"), SIC from data.sec.gov submissions. Needs the
+             SEC_CONTACT env var (contact address for SEC's User-Agent policy);
+             the address is never written to any file.
+
+Usage:  SEC_CONTACT=... python3 -I scripts/collect_ipos_2010.py [--markets india,uk,japan,korea,australia,us]
 Raw responses are cached under the scratchpad dir (SCRATCH env var or default),
 so re-running resumes without refetching.
 """
@@ -559,9 +564,189 @@ def collect_australia(gaps):
     return rows
 
 
+# ------------------------------------------------------------------ US (EDGAR)
+# SEC requires a contact address in the User-Agent. It is read ONLY from the
+# SEC_CONTACT environment variable at run time, sent only to sec.gov hosts, and
+# never written to any file, log line, row or gap.
+SEC_HOSTS = ("www.sec.gov", "data.sec.gov")
+SEC_DELAY = 0.25  # <= 4 requests/second
+SEC_IDX = "https://www.sec.gov/Archives/edgar/full-index/{y}/QTR{q}/form.idx"
+SEC_SUB = "https://data.sec.gov/submissions/CIK{cik:010d}.json"
+SEC_REG_FORMS = {"S-1", "F-1"}
+SEC_REPORTING = {"10-K", "10-K405", "10-KSB", "10-KT", "10-Q", "10-QSB", "20-F", "40-F", "N-CSR", "N-CSRS"}
+SEC_LOOKBACK_FROM = 2005  # reporting history scanned from 2005Q1
+SEC_EXCL_SIC = {
+    "6189": "asset-backed securities", "6221": "commodity contracts / commodity trusts",
+    "6722": "open-end investment funds", "6726": "unit investment trusts / other investment offices",
+}
+SEC_ABS_NAME = re.compile(r"\b(RECEIVABLES|AUTO (LOAN|LEASE)|CREDIT CARD (MASTER )?TRUST|MORTGAGE (LOAN )?TRUST \d{4}|"
+                          r"TRUST \d{4}-|FUNDING (LLC|CORP)|DEPOSITOR|SECURITIZATION)\b", re.I)
+SEC_LINE = re.compile(r"^(\S+(?: \S+)*?)\s{2,}(.+?)\s{2,}(\d+)\s+(\d{4}-\d{2}-\d{2})\s+(edgar/\S+)\s*$")
+_sec = {"session": None, "last": 0.0}
+
+
+def sec_fetch(url, ext):
+    host = re.match(r"https://([^/]+)/", url).group(1)
+    assert host in SEC_HOSTS, host
+    d = os.path.join(SCRATCH, "us")
+    os.makedirs(d, exist_ok=True)
+    path = os.path.join(d, hashlib.sha1(url.encode()).hexdigest()[:20] + "." + ext)
+    if os.path.exists(path):
+        with open(path, "rb") as f:
+            return f.read()
+    if _sec["session"] is None:
+        contact = os.environ.get("SEC_CONTACT", "").strip()
+        if not contact:
+            return None
+        s = requests.Session()
+        s.headers["User-Agent"] = f"MarketEventsTracker/1.0 historical-backfill {contact}"
+        s.headers["Accept-Encoding"] = "gzip, deflate"
+        _sec["session"] = s
+    for attempt in range(4):
+        wait = SEC_DELAY - (time.time() - _sec["last"])
+        if wait > 0:
+            time.sleep(wait)
+        try:
+            r = _sec["session"].get(url, timeout=120)
+            _sec["last"] = time.time()
+            if r.status_code == 200:
+                with open(path, "wb") as f:
+                    f.write(r.content)
+                return r.content
+            log(f"  SEC HTTP {r.status_code} {url}")
+            if r.status_code == 404:
+                return None
+        except requests.RequestException as e:
+            _sec["last"] = time.time()
+            log(f"  SEC error {type(e).__name__} {url}")
+        time.sleep(5 * (attempt + 1))
+    return None
+
+
+def parse_form_idx(text):
+    started = False
+    for line in text.splitlines():
+        if not started:
+            started = line.startswith("-----")
+            continue
+        m = SEC_LINE.match(line)
+        if m:
+            form, name, cik, date, fn = m.groups()
+            yield form.strip(), re.sub(r"\s+", " ", name).strip(), int(cik), dt.date.fromisoformat(date), fn
+
+
+def sec_index_url(cik, fn):
+    acc = os.path.basename(fn).replace(".txt", "")
+    return f"https://www.sec.gov/Archives/edgar/data/{cik}/{acc.replace('-', '')}/{acc}-index.htm"
+
+
+def us_select(filings, start=START, end=END, window=730):
+    """Pure selection logic (testable offline).
+
+    filings: iterable of (form, name, cik, date, filename) from form.idx, incl. lookback years.
+    Returns (candidates, stats): candidates is a list of dicts with the S-1/F-1 original and
+    the first 424B4 within `window` days after it, for filers with no periodic report before.
+    """
+    first_report, regs, b4s = {}, [], {}
+    for form, name, cik, d, fn in filings:
+        if form in SEC_REPORTING:
+            if cik not in first_report or d < first_report[cik]:
+                first_report[cik] = d
+        elif form in SEC_REG_FORMS and start <= d <= end:
+            regs.append((d, form, name, cik, fn))
+        elif form == "424B4":
+            b4s.setdefault(cik, []).append((d, name, fn))
+    stats = {"reg_originals": len(regs), "already_reporting": 0, "no_424b4": 0}
+    out, used_b4 = [], set()
+    for d, form, name, cik, fn in sorted(regs):
+        if cik in first_report and first_report[cik] < d:
+            stats["already_reporting"] += 1
+            continue
+        nxt = sorted(x for x in b4s.get(cik, []) if d <= x[0] <= d + dt.timedelta(days=window))
+        if not nxt:
+            stats["no_424b4"] += 1
+            continue
+        b4 = nxt[0]
+        out.append({"cik": cik, "reg": (d, form, name, fn),
+                    "b4": None if (cik, b4[0]) in used_b4 or b4[0] > end else b4})
+        used_b4.add((cik, b4[0]))
+    return out, stats
+
+
+def collect_us(gaps):
+    if not os.environ.get("SEC_CONTACT", "").strip() and not os.path.isdir(os.path.join(SCRATCH, "us")):
+        gaps.append({"scope": "US IPOs and S-1/F-1 filings (all years)",
+                     "reason": "Not collected in this run: SEC requires a contact address in the User-Agent and none was supplied (SEC_CONTACT unset)"})
+        return []
+    filings, missing = [], []
+    for y in range(SEC_LOOKBACK_FROM, 2022):
+        for q in range(1, 5):
+            if (y, q) > (2021, 3):
+                break
+            blob = sec_fetch(SEC_IDX.format(y=y, q=q), "idx")
+            if not blob:
+                missing.append(f"{y}Q{q}")
+                continue
+            filings.extend(f for f in parse_form_idx(blob.decode("latin-1"))
+                           if f[0] in SEC_REG_FORMS or f[0] == "424B4" or f[0] in SEC_REPORTING)
+        log(f"US form.idx {y}: {len(filings)} relevant filings")
+    if missing:
+        gaps.append({"scope": f"US EDGAR form.idx quarters {', '.join(missing)}", "reason": "Download failed; S-1/F-1/424B4 filings and reporting history for these quarters are missing"})
+    cands, stats = us_select(filings)
+    rows, excl_sic, excl_name, spacs = [], {}, 0, 0
+    sub_cache = {}
+    for c in cands:
+        cik = c["cik"]
+        if cik not in sub_cache:
+            blob = sec_fetch(SEC_SUB.format(cik=cik), "json")
+            sub_cache[cik] = json.loads(blob) if blob else {}
+        sub = sub_cache[cik]
+        sic = str(sub.get("sic") or "")
+        d, form, name, fn = c["reg"]
+        if sic in SEC_EXCL_SIC:
+            excl_sic[sic] = excl_sic.get(sic, 0) + 1
+            continue
+        if SEC_ABS_NAME.search(name):
+            excl_name += 1
+            continue
+        spac = sic == "6770"
+        spacs += spac
+        tickers = sub.get("tickers") or []
+        symbol = tickers[0] if tickers else f"CIK{cik}"
+        label = " – SPAC (SIC 6770 blank check)" if spac else ""
+        rows.append({
+            "date": d.isoformat(), "market": "US", "symbol": symbol, "company": name,
+            "type": "Prospectus", "title": f"{form} registration statement (original filing){label}",
+            "doc_url": sec_index_url(cik, fn), "doc_source": "regulator",
+            "source": "SEC EDGAR full-index form.idx",
+        })
+        if c["b4"]:
+            bd, bname, bfn = c["b4"]
+            rows.append({
+                "date": bd.isoformat(), "market": "US", "symbol": symbol, "company": bname,
+                "type": "IPO", "title": f"Final prospectus (424B4); filing date used as pricing/listing-date proxy{label}",
+                "doc_url": sec_index_url(cik, bfn), "doc_source": "regulator",
+                "source": "SEC EDGAR full-index form.idx",
+            })
+    gaps.extend([
+        {"scope": "US method: equity IPO filter",
+         "reason": (f"From {stats['reg_originals']} original S-1/F-1 filings (Jan 2010-Sep 2021): {stats['already_reporting']} dropped because the "
+                    f"registrant had filed a 10-K/10-Q/20-F/40-F/N-CSR before the S-1/F-1 (already public; reporting history scanned from {SEC_LOOKBACK_FROM}Q1 only), "
+                    f"{stats['no_424b4']} dropped because no 424B4 final prospectus followed within 24 months (withdrawn deals, self-underwritten/best-efforts "
+                    f"shells and resale registrations that use 424B3/424B1 are therefore missing)")},
+        {"scope": "US method: non-equity registrants",
+         "reason": f"Dropped by SIC code from SEC submissions data: {', '.join(f'{k} {SEC_EXCL_SIC[k]} ({v})' for k, v in sorted(excl_sic.items())) or 'none'}; "
+                   f"{excl_name} more dropped by ABS-style registrant names (receivables, auto loan, 'Trust 20xx-' etc.). Closed-end funds file N-2, not S-1, so are not in scope. "
+                   "Name/SIC filters are heuristics: some debt-only S-1s may remain and some equity issuers may be excluded"},
+        {"scope": "US IPO dates", "reason": "IPO row date is the 424B4 filing date (normally the day after pricing, around the first trading day), not an exchange-confirmed listing date"},
+        {"scope": "US symbols", "reason": "Ticker is today's ticker from SEC submissions data; companies without a current ticker use CIK<number>"},
+        {"scope": "US SPACs", "reason": f"Included and labelled in the title when SIC is 6770 ({spacs} registrations)"},
+    ])
+    return rows
+
+
 # ---------------------------------------------------------------------- main
 STATIC_GAPS = [
-    {"scope": "US IPOs and S-1 filings (all years)", "reason": "Out of scope for now: sec.gov blocks requests whose User-Agent lacks a contact email, and no email may be used"},
     {"scope": "India IPO listing dates (BSE and NSE, all years)", "reason": "api.bseindia.com answers Akamai 'Access Denied' to the tracker User-Agent (public-issue archive is served only via that API); www.nseindia.com not reachable from this environment"},
     {"scope": "India SME IPOs", "reason": "SME offer documents are filed with BSE SME / NSE Emerge, not SEBI; both sources unreachable"},
     {"scope": "India addenda / corrigenda to offer documents", "reason": "Deliberately skipped; only the DRHP, RHP and final offer document entries are kept. SEBI 'Public Issues' also lists the occasional FPO, which the list does not label separately"},
@@ -583,11 +768,11 @@ STATIC_GAPS = [
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--markets", default="india,uk,japan,korea,australia")
+    ap.add_argument("--markets", default="india,uk,japan,korea,australia,us")
     ap.add_argument("-o", "--output", default=OUT)
     args = ap.parse_args()
     fns = {"india": collect_india, "uk": collect_uk, "japan": collect_japan,
-           "korea": collect_korea, "australia": collect_australia}
+           "korea": collect_korea, "australia": collect_australia, "us": collect_us}
     rows, gaps = [], list(STATIC_GAPS)
     for m in args.markets.split(","):
         log(f"== {m}")
@@ -604,7 +789,7 @@ def main():
         uniq.append(r)
     uniq.sort(key=lambda r: (r["date"], r["market"], r["symbol"]))
     out = {
-        "market": "India, UK, Japan, South Korea, Australia (IPOs and prospectuses)",
+        "market": "India, UK, Japan, South Korea, Australia, US (IPOs and prospectuses)",
         "range": {"from": "2010-01", "to": "2021-09"},
         "sources": [
             "SEBI Filings > Public Issues (www.sebi.gov.in)",
@@ -612,6 +797,7 @@ def main():
             "JPX Monthly Statistics Report, Changes in Listed Companies (www.jpx.co.jp)",
             "DART detailed search (dart.fss.or.kr)",
             "ASX listed companies directory (asx.api.markitdigital.com / www.asx.com.au)",
+            "SEC EDGAR full-index form.idx and submissions data (www.sec.gov / data.sec.gov)",
         ],
         "generated_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
         "rows": uniq,
