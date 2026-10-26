@@ -204,6 +204,7 @@ def lse_sheet_rows(blob, fname):
                         ci = next(i for i, v in enumerate(hdr) if v.startswith("company"))
                         di = next(i for i, v in enumerate(hdr) if v in ("list date", "admission date"))
                         mi = next((i for i, v in enumerate(hdr) if v == "market"), None)
+                        si = [i for i, v in enumerate(hdr) if v in ("sector", "sub sector", "icb industry", "icb super-sector")]
                     continue
                 dv = vals[di]
                 if isinstance(dv, float) and dv > 0:
@@ -212,7 +213,7 @@ def lse_sheet_rows(blob, fname):
                     d = dt.datetime.strptime(dv.strip()[:10], "%d/%m/%Y").date()
                 else:
                     continue
-                yield sn, d, str(vals[ci]).strip(), (str(vals[mi]).strip().upper() if mi is not None else "")
+                yield sn, d, str(vals[ci]).strip(), (str(vals[mi]).strip().upper() if mi is not None else ""), " ".join(str(vals[i]) for i in si if i < len(vals))
             wb.unload_sheet(sn)
     else:
         import openpyxl
@@ -227,6 +228,7 @@ def lse_sheet_rows(blob, fname):
                         ci = next(i for i, v in enumerate(hdr) if v.startswith("company"))
                         di = next(i for i, v in enumerate(hdr) if v in ("list date", "admission date"))
                         mi = next((i for i, v in enumerate(hdr) if v == "market"), None)
+                        si = [i for i, v in enumerate(hdr) if v in ("sector", "sub sector", "icb industry", "icb super-sector")]
                     continue
                 if len(vals) <= max(ci, di):
                     continue
@@ -239,9 +241,10 @@ def lse_sheet_rows(blob, fname):
                     d = dt.datetime.strptime(dv.strip()[:10], "%d/%m/%Y").date()
                 else:
                     continue
-                yield sn, d, str(vals[ci] or "").strip(), (str(vals[mi] or "").strip().upper() if mi is not None else "")
+                yield sn, d, str(vals[ci] or "").strip(), (str(vals[mi] or "").strip().upper() if mi is not None else ""), " ".join(str(vals[i] or "") for i in si if i < len(vals))
 
 
+NON_EQUITY = re.compile(r"preference|debenture|loans", re.I)
 MONTHS = {m: i for i, m in enumerate(["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"], 1)}
 
 
@@ -258,6 +261,7 @@ def collect_uk(gaps):
     # first_seen[norm] = (snapshot month index, admission date, company, market)
     first_seen = {}
     snapshots = {}  # norm -> set of (snapshot_ym)
+    nonequity = set()
     entries = {}  # (norm, admission date) -> (company, market, first snapshot ym, year, link)
     for year in sorted(files):
         link = files[year]
@@ -269,9 +273,12 @@ def collect_uk(gaps):
         for fn in z.namelist():
             if not fn.lower().endswith((".xls", ".xlsx")):
                 continue
-            for sn, d, company, mkt in lse_sheet_rows(z.read(fn), fn):
+            for sn, d, company, mkt, sector in lse_sheet_rows(z.read(fn), fn):
                 mon = MONTHS.get(sn.strip().lower()[:3])
                 if not mon or not company:
+                    continue
+                if NON_EQUITY.search(sector):
+                    nonequity.add(norm_name(company))
                     continue
                 ym = year * 100 + mon
                 n = norm_name(company)
@@ -297,7 +304,7 @@ def collect_uk(gaps):
                 continue
             if vals[0] and vals[1]:
                 tidm.setdefault(norm_name(vals[1]), str(vals[0]).strip())
-    rows, transfers = [], 0
+    rows, transfers, late = [], 0, 0
     for (n, d), (company, mkt, ym, year, link) in entries.items():
         if not in_range(d):
             continue
@@ -313,6 +320,10 @@ def collect_uk(gaps):
         if any(s < adm_ym for s in snapshots.get(n, ())):
             transfers += 1
             continue
+        fy, fm = divmod(first_seen.get(n, ym), 100)
+        if (fy * 12 + fm) - (d.year * 12 + d.month) > 2:
+            late += 1  # first appears in the issuer list long after its admission date
+            continue
         name = re.sub(r"\s+", " ", company).strip()
         rows.append({
             "date": d.isoformat(), "market": "UK", "symbol": tidm.get(n) or slug_symbol(name),
@@ -321,6 +332,8 @@ def collect_uk(gaps):
             "doc_url": link, "doc_source": "exchange",
             "source": f"LSE issuer list archive {year} (monthly snapshot)",
         })
+    gaps.append({"scope": "UK issuers first listed in the archive long after their admission date", "reason": f"{late} admissions dropped: the issuer only appears in a monthly snapshot more than two months after its stated admission date (renamed issuers whose earlier name already carries the admission, or archive scope changes such as debt vehicles added later) (archive scope changes, e.g. debt/funding vehicles added to the list later), so the date cannot be confirmed as a new equity listing"})
+    gaps.append({"scope": "UK preference-share / debenture issuers", "reason": f"{len(nonequity)} issuers classed in LSE sectors 'Preference' or 'Debentures & Loans' excluded as non-equity listings"})
     gaps.append({"scope": "UK admissions that were moves between markets",
                  "reason": f"{transfers} admissions dropped because the issuer already appeared in an earlier monthly LSE snapshot (AIM<->Main Market moves, re-admissions)"})
     return rows

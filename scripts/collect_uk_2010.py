@@ -338,15 +338,20 @@ def fmt_date(d):
     return f"{d.day} {dt.date(2000, d.month, 1).strftime('%B')} {d.year}"
 
 
-def listing(name, epic, d0, d1):
-    """All announcements of `epic` between d0 and d1 (dates), via name search."""
+def listing(name, epic, d0, d1, mode="1"):
+    """All announcements of `epic` between d0 and d1 (dates), via company-name
+    search (mode 1) or, when the site rejects the name (HTTP 422 for names with
+    punctuation), EPIC prefix search (mode 2). Rows are filtered to `epic`."""
     out, page, total = [], 1, None
+    word = name if mode == "1" else epic.split(".")[0]
     while True:
-        params = {"search_for": "1", "search_word": name, "date_from": fmt_date(d0),
+        params = {"search_for": mode, "search_word": word, "date_from": fmt_date(d0),
                   "date_to": fmt_date(d1), "exclude_navs": "true", "page": str(page)}
         h = fetch(IG + "/advanced-search/draw", "ig_search", params,
                   headers={"X-Requested-With": "XMLHttpRequest"})
         if h is None:
+            if page == 1 and mode == "1":
+                return listing(name, epic, d0, d1, mode="2")
             return out, False
         rows = ROW.findall(h)
         for dd, mon, yy, hh, mi, ap, ep, cname, url, head in rows:

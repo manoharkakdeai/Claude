@@ -406,7 +406,7 @@ def _qfy(href, text=""):
         return None
     fy = _yy(m.group(3)) if m.group(3) else _yy(m.group(2))
     low = name.lower()
-    if "revised" in low or "invite" in low:
+    if re.search(r"revised|invite|newspaper|news-paper|intimation|msat|satyam", low):
         return None
     if "transcript" in low:
         return fy, int(m.group(1)), "call"
@@ -440,6 +440,8 @@ def _generic(href, text=""):
 
 
 COMPANY_SITES = {
+    "BAJAJ-AUTO": {"pages": ["https://www.bajajauto.com/investors/financial-and-operational-performance"], "map": _generic},
+    "TECHM": {"pages": ["https://www.techmahindra.com/investors/quarterly-earnings/"], "map": _generic},
     "TATASTEEL": {"pages": ["https://www.tatasteel.com/investors/financial-performance/financial-results/"], "map": _generic},
     "GRASIM": {"pages": ["https://www.grasim.com/investors/results-reports-and-presentations"], "map": _qfy},
     "HINDALCO": {"pages": ["https://www.hindalco.com/investors/financial-performance/results-reports-presentations"], "map": _qfy},
