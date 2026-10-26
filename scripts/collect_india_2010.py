@@ -362,7 +362,11 @@ def agm_date_from_report(txt, upload):
     flat = re.sub(r"\s+", " ", txt)
     votes = {}
     for m in _HELD.finditer(flat):
-        d = _parse_date_at(flat[m.end():m.end() + 80])
+        win = flat[m.end():m.end() + 260]
+        d = _parse_date_at(win[:80])
+        if d is None:  # '... will be held at <venue>, on <date>'
+            on = re.search(r"\bon\s+", win)
+            d = _parse_date_at(win[on.end():on.end() + 80]) if on else None
         if d and dt.timedelta(days=-150) <= d - upload <= dt.timedelta(days=150):
             votes[d] = votes.get(d, 0) + 1
     if not votes:
