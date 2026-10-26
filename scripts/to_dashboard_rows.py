@@ -1,6 +1,6 @@
 """Convert a history_<market>_2010.json file (schema rows) into the row shape the dashboard tables read.
 
-Usage: python3 scripts/to_dashboard_rows.py data/history/history_korea_2010.json -o out/history_korea_2010.json
+Usage: python3 scripts/to_dashboard_rows.py data/history/history_korea_2010.json -o out/history_korea_2010.json [--years 2010-2015]
 
 The dashboard groups event types more coarsely than the schema: AGMs and investor days
 share "Investor day / meet", annual reports and prospectuses are "Filing", and trading
@@ -37,27 +37,36 @@ def convert(row, seen):
     detail = row.get("title") or row["type"]
     if row.get("period") and row["period"] not in detail:
         detail = f"{detail} ({row['period']})"
-    base = "-".join(p for p in (PREFIX[row["market"]], slug(sym, 20), row["date"], TYPE_CODE[dtype], slug(detail)) if p)
+    base = "-".join(p for p in (PREFIX[row["market"]], slug(sym, 20), row["date"], TYPE_CODE[dtype], slug(detail, 24)) if p)
     rid, i = base, 2
     while rid in seen:
         rid, i = f"{base}-{i}", i + 1
     seen.add(rid)
-    return {
-        "id": rid, "date": row["date"], "time": row.get("time", ""), "market": row["market"], "type": dtype,
-        "company": company, "symbol": sym, "indices": row.get("index", ""), "detail": detail, "status": status,
-        "doc_url": row.get("doc_url", ""), "doc_source": row.get("doc_source", ""), "alt_url": "",
-        "source": row.get("source", ""),
+    out = {
+        "id": rid, "date": row["date"], "market": row["market"], "type": dtype, "company": company, "symbol": sym,
+        "indices": row.get("index", ""), "detail": detail, "status": status,
+        "doc_url": row.get("doc_url", ""), "doc_source": row.get("doc_source", ""),
     }
+    # Optional fields are left out when empty or a repeat of doc_url, to keep files under the dashboard's 8 MB cap.
+    if row.get("time"):
+        out["time"] = row["time"]
+    if row.get("source", "").startswith("http") and row["source"] != out["doc_url"]:
+        out["source"] = row["source"]
+    return out
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("input")
     parser.add_argument("-o", "--output", required=True)
+    parser.add_argument("--years", help="keep only rows in this year range, e.g. 2010-2015 (to split large markets)")
     args = parser.parse_args()
     with open(args.input, encoding="utf-8") as f:
         data = json.load(f)
     rows = data["rows"] if isinstance(data, dict) else data
+    if args.years:
+        lo, hi = args.years.split("-")
+        rows = [r for r in rows if lo <= r["date"][:4] <= hi]
     seen = set()
     out = sorted((convert(r, seen) for r in rows), key=lambda r: (r["date"], r["company"]), reverse=True)
     with open(args.output, "w", encoding="utf-8") as f:
