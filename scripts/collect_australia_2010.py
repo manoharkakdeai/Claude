@@ -162,8 +162,8 @@ def notices(cache):
 # ----------------------------------------------------------------------------- notice parsing
 MONTHS = {m: i + 1 for i, m in enumerate(
     ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"])}
-DATE_RE = (r"(?:(?P<mon1>[A-Z][a-z]{2,8})\.?\s+(?P<d1>\d{1,2}),?\s+(?P<y1>20\d\d)"
-           r"|(?P<d2>\d{1,2})\s+(?P<mon2>[A-Z][a-z]{2,8})\.?,?\s+(?P<y2>20\d\d))")
+DATE_RE = (r"(?:(?P<mon1>[A-Z][a-z]{2,8})\.?\s*(?P<d1>\d{1,2}),?\s+(?P<y1>20\d\d)"
+           r"|(?P<d2>\d{1,2})(?:st|nd|rd|th)?\s+(?P<mon2>[A-Z][a-z]{2,8})\.?,?\s+(?P<y2>20\d\d))")
 EFF_RE = re.compile(r"(?P<kind>after\s+the\s+close|prior\s+to\s+the\s+open|before\s+the\s+open|"
                     r"at\s+the\s+open|close\s+of\s+(?:trading|business))[^.]{0,60}?" + DATE_RE, re.I | re.S)
 
@@ -208,9 +208,13 @@ def parse_notice(text):
     lines = [l for l in text.splitlines() if "For personal use only" not in l]
     doc_eff = find_effective(text)
     out = []
-    in200, mode, sec_eff = False, None, None
-    for l in lines:
+    in200, mode, sec_eff, para_eff = False, None, None, None
+    for idx, l in enumerate(lines):
         h = HEAD_RE.match(l)
+        if not h:
+            pe = find_effective(" ".join(x.strip() for x in lines[idx:idx + 2]))
+            if pe and re.search(r"effective|after the close|prior to the open", l, re.I):
+                para_eff = pe
         if h and len(l.strip()) < 120:
             rest = h.group(1)
             in200 = is_200_heading(rest)
@@ -238,7 +242,7 @@ def parse_notice(text):
             if act:
                 a = "add" if act.lower().startswith("add") else "remove"
             if a and not m.group(3).lower().startswith(("name", "company")):
-                out.append((sec_eff or doc_eff, a, m.group(2), re.sub(r"\s{2,}.*$", "", m.group(3))))
+                out.append((sec_eff or para_eff or doc_eff, a, m.group(2), re.sub(r"\s{2,}.*$", "", m.group(3))))
             continue
         if st and len(st) > 60 and a_is_prose_end(st):
             in200 = False
@@ -268,25 +272,63 @@ PROSE = [
 
 
 def parse_prose(lines, doc_eff):
+    """Sentence-level parsing for notices without change tables. Each sentence uses its own effective
+    date when it states one. Additions phrased 'include X in all S&P/ASX Indices of which Y is a
+    constituent' are conditional (cond=True) because they depend on Y's membership."""
     flat = re.sub(r"\s+", " ", " ".join(lines))
-    adds, rems, rem_ind = {}, {}, {}
-    for kind, rx in PROSE:
-        for m in rx.finditer(flat):
-            if kind == "add":
-                adds[m.group("c")] = m.group("n")
-            elif kind == "remove":
-                rems[m.group("c")] = m.group("n")
-            elif kind == "remove_ind":
-                rem_ind[m.group("c")] = m.group("n")
-            else:
-                adds[m.group("c")] = m.group("n")
-                rems[m.group("c2")] = m.group("n2")
-    if adds:  # a generic "removed from the S&P/ASX indices" only counts when a 200 replacement is named
-        for c, n in rem_ind.items():
-            rems.setdefault(c, n)
-    out = [(doc_eff, "add", c, n.strip()) for c, n in adds.items()]
-    out += [(doc_eff, "remove", c, n.strip()) for c, n in rems.items() if c not in adds]
-    return out
+    codes = {}
+    for m in re.finditer(NAME_P.format(g="n") + r"\s*" + CODE_P.format(g="c"), flat):
+        codes[m.group("n").strip()] = m.group("c")
+
+    def code_of(name):
+        name = name.strip()
+        if name in codes:
+            return codes[name]
+        for n, c in codes.items():
+            if n.endswith(name) or name.endswith(n):
+                return c
+        return None
+
+    out = []
+    sentences = re.split(r"(?<=[a-z0-9)\]])\.\s+(?=[A-Z])", flat)
+    for sent in sentences:
+        eff = find_effective(sent) or doc_eff
+        adds, rems, rem_ind = {}, {}, {}
+        for kind, rx in PROSE:
+            for m in rx.finditer(sent):
+                if kind == "add":
+                    adds[m.group("c")] = m.group("n")
+                elif kind == "remove":
+                    rems[m.group("c")] = m.group("n")
+                elif kind == "remove_ind":
+                    rem_ind[m.group("c")] = m.group("n")
+                else:
+                    adds[m.group("c")] = m.group("n")
+                    rems[m.group("c2")] = m.group("n2")
+        for m in re.finditer(NAME_P.format(g="n") + r"\s+will\s+be\s+added\s+to\s+the\s+" + IDX200, sent):
+            c = code_of(m.group("n"))
+            if c:
+                adds.setdefault(c, m.group("n"))
+        for m in re.finditer(NAME_P.format(g="n") + r"\s+will\s+(?:not\s+)?be\s+removed\s+from\s+the\s+"
+                             r"(?:S&P\s*/\s*ASX\s+[\w ]+?,\s+|S&P\s*/\s*ASX\s+[\w ]+?\s+and\s+)*" + IDX200, sent):
+            c = code_of(m.group("n"))
+            if c:
+                rems.setdefault(c, m.group("n"))
+        for m in re.finditer(r"include\s+" + NAME_P.format(g="n") + r"(?:\s*" + CODE_P.format(g="c") + r")?\s+in\s+all\s+"
+                             r"S&P\s*/\s*ASX\s+Indices\s+of\s+which", sent):
+            c = m.group("c") or code_of(m.group("n"))
+            if c and c not in adds:
+                out.append((eff, "add?", c, m.group("n").strip()))
+        if adds:
+            for c, n in rem_ind.items():
+                rems.setdefault(c, n)
+        out += [(eff, "add", c, n.strip()) for c, n in adds.items()]
+        out += [(eff, "remove", c, n.strip()) for c, n in rems.items() if c not in adds]
+    # keep one entry per (action, code): the last sentence wins (later sentences restate/qualify)
+    last = {}
+    for e in out:
+        last[(e[1].rstrip("?"), e[2])] = e
+    return list(last.values())
 
 
 def a_is_prose_end(st):
@@ -350,9 +392,15 @@ def load_changes(cache):
                                                       r"Sector|Confirmation|Annual|Market Cap", meta["headline"], re.I):
             unparsed.append((meta, "mentions S&P/ASX 200 but no change rows parsed"))
         for eff, act, code, name in res:
+            rel = dt.date.fromisoformat(meta["date"])
             if eff is None:
-                eff = dt.date.fromisoformat(meta["date"]) + dt.timedelta(days=1)
-            changes.append({"eff": eff, "act": act, "code": code, "name": name,
+                eff = rel + dt.timedelta(days=1)
+            if eff < rel - dt.timedelta(days=3):  # e.g. a notice of Mar 2011 stating "March 9, 2010"
+                try:
+                    eff = eff.replace(year=rel.year)
+                except ValueError:
+                    pass
+            changes.append({"eff": eff, "act": act.rstrip("?"), "cond": act.endswith("?"), "code": code, "name": name,
                             "ids": meta["ids"], "released": meta["date"], "headline": meta["headline"]})
     # the same change is often announced more than once (preliminary + confirmation/update): keep the
     # latest-released notice for a (code, action) pair within 75 days of each other
@@ -388,11 +436,15 @@ def reconstruct(anchor, changes):
     cur_from = ANCHOR_DATE
     for eff in sorted((e for e in by_eff if e <= ANCHOR_DATE), reverse=True):
         timeline.append((eff, frozenset(state)))
-        for c in by_eff[eff]:
+        grp = by_eff[eff]
+        both = {c["code"] for c in grp if c["act"] == "add"} & {c["code"] for c in grp if c["act"] == "remove"}
+        for c in grp:
+            if c["code"] in both:
+                continue  # added and removed with the same effective date: no net change
             if c["act"] == "add":
                 if c["code"] in state:
                     state.discard(c["code"])
-                else:
+                elif not c.get("cond"):
                     issues.append(dict(c, problem="addition not in later set"))
             else:
                 if c["code"] not in state:
