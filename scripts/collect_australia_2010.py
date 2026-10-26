@@ -191,6 +191,8 @@ def find_effective(text):
     return d + dt.timedelta(days=1) if after_close else d
 
 
+TABROW_RE = re.compile(r"^\s*S&P\s*/\s*ASX\s+(?P<idx>[\w ]+?)\s{2,}(?P<act>Addition|Removal|Deletion|Add|Delete)\s+"
+                       r"(?P<code>[A-Z][A-Z0-9]{2})\s+(?P<name>\S.*)$")
 HEAD_RE = re.compile(r"^\s*S&P\s*/\s*ASX\s+(.*)$")
 ROW_LINE = re.compile(r"^\s*(?:(Addition|Additions|Add|Removal|Removals|Deletion|Deletions|Delete|Drop)\s+)?"
                       r"([A-Z][A-Z0-9]{2})\s{2,}(\S.*?)\s*$")
@@ -215,6 +217,12 @@ def parse_notice(text):
             pe = find_effective(" ".join(x.strip() for x in lines[idx:idx + 2]))
             if pe and re.search(r"effective|after the close|prior to the open", l, re.I):
                 para_eff = pe
+        tr = TABROW_RE.match(l)
+        if tr:  # "S&P/ASX 200   Addition   AZT   Aston Resources Limited" (index named on every row)
+            if re.fullmatch(r"200(\s+Index)?", tr.group("idx").strip()):
+                a = "add" if tr.group("act").lower().startswith("add") else "remove"
+                out.append((sec_eff or para_eff or doc_eff, a, tr.group("code"), tr.group("name").strip()))
+            continue
         if h and len(l.strip()) < 120:
             rest = h.group(1)
             in200 = is_200_heading(rest)

@@ -107,6 +107,7 @@ _session.headers["User-Agent"] = UA
 _session.verify = "/root/.ccr/ca-bundle.crt" if os.path.exists("/root/.ccr/ca-bundle.crt") else True
 _last = [0.0]
 STATS = {"fetched": 0, "cached": 0, "failed": 0}
+FAILED = set()
 
 
 def _cache_path(url):
@@ -114,7 +115,7 @@ def _cache_path(url):
     return os.path.join(CACHE, h[:2], h + ".gz")
 
 
-def fetch(url, binary=False, retries=6):
+def fetch(url, binary=False, retries=3):
     """GET with cache, throttle and retry. Returns bytes/str, or None on 404/failure."""
     p = _cache_path(url)
     if os.path.exists(p):
@@ -130,10 +131,10 @@ def fetch(url, binary=False, retries=6):
             time.sleep(wait)
         _last[0] = time.time()
         try:
-            r = _session.get(url, timeout=90)
+            r = _session.get(url, timeout=40)
         except requests.RequestException as e:
             print(f"  ! {url} {type(e).__name__}; retry {attempt + 1}", file=sys.stderr)
-            time.sleep(5 * (attempt + 1))
+            time.sleep(3 * (attempt + 1))
             continue
         if r.status_code == 200:
             os.makedirs(os.path.dirname(p), exist_ok=True)
@@ -151,8 +152,9 @@ def fetch(url, binary=False, retries=6):
             STATS["failed"] += 1
             return None
         print(f"  ! {url} HTTP {r.status_code}; retry {attempt + 1}", file=sys.stderr)
-        time.sleep(8 * (attempt + 1))
+        time.sleep(4 * (attempt + 1))
     STATS["failed"] += 1
+    FAILED.add(url)
     return None
 
 
@@ -519,8 +521,9 @@ def main():
                        "irbank_name": info and info["name"], "ecode": info and info["ecode"],
                        "membership": {str(k): v for k, v in sorted(mem[code].items())}})
         if not info:
-            gaps.append({"scope": f"{code} ({wname or anchor.get(code)}) all events",
-                         "reason": "no IRBANK page for this code"})
+            why = ("IRBANK request failed repeatedly (HTTP 5xx/timeouts)" if f"{IRBANK}/{code}" in FAILED
+                   else "no IRBANK page for this code")
+            gaps.append({"scope": f"{code} ({wname or anchor.get(code)}) all events", "reason": why})
             continue
         collect_company(code, info, mem[code], rows, gaps, tanshin_time=not args.no_tanshin_time)
 
