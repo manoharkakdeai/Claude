@@ -446,6 +446,8 @@ def _generic(href, text=""):
 
 
 COMPANY_SITES = {
+    "PNB": {"pages": ["https://pnb.bank.in/financials-archives.html"], "map": _generic},
+    "ITC": {"pages": ["https://itcportal.com/investors/quarterly-results.html"], "map": _generic},
     "BAJAJ-AUTO": {"pages": ["https://www.bajajauto.com/investors/financial-and-operational-performance"], "map": _generic},
     "TECHM": {"pages": ["https://www.techmahindra.com/investors/quarterly-earnings/"], "map": _generic},
     "TATASTEEL": {"pages": ["https://www.tatasteel.com/investors/financial-performance/financial-results/"], "map": _generic},

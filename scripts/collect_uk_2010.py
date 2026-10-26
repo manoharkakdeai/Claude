@@ -409,7 +409,7 @@ NOT_EVENT = re.compile(
     r"notice of (meeting|general)|replacement|correction|amendment|addendum|cancellation|withdrawn|"
     r"director(ate)?\b|pdmr|dividend|holding\(s\)|holdings? in |voting rights|block ?listing|own shares|price monitoring", re.I)
 AGM = re.compile(r"\bagm\b|annual general meeting|\bagms\b|annual meeting|result of a\.?g\.?m|ag\s?m statement|general meeting.*annual", re.I)
-AGM_NOT = re.compile(r"information|arrangement|notice|posting|proxy|circular|doc re|documents?|convening|availability|publication|date|resolutions? passed at.*(egm|general meeting\b(?!.*annual))", re.I)
+AGM_NOT = re.compile(r"information|arrangement|notice|posting|proxy|circular|doc re|documents?|convening|availability|publication|\bdates?\b|resolutions? passed at.*(egm|general meeting\b(?!.*annual))", re.I)
 ANNUAL = re.compile(r"annual (financial )?report|annual review|report (and|&) accounts|annual report.*20-f|form 20-f|10-k", re.I)
 ANNUAL_NOT = re.compile(r"subsidiary|^filing|\bfiles?\b|filed|\bsec\b|half|interim|sustainab|responsib|corporate responsibility|remuneration|esg|gender|payments to gov|slavery|tax|climate|\bmodern", re.I)
 INVESTOR = re.compile(r"capital markets? (day|event|update|seminar|presentation)|investor (day|seminar|event|update day|briefing)|strategy (day|update|presentation|review day)|analyst (day|seminar|event|visit)|investor and analyst", re.I)
@@ -424,30 +424,94 @@ RESULTS_NOT = re.compile(r"production|operational review|operating (review|state
                          r"capital (raising|return)|offer|acquisition|disposal|merger|tender|scheme|noteholder|bondholder|pricing|proposals|"
                          r"referendum|notice|\bdoc re|reconciliation|notification|kumba|de beers|anglo (american )?platinum|"
                          r"\bwell\b|thungela|meeting|change in time|statement re|top[- ]line|pipeline|\beba\b|cebs|horizon|presentation|webcast", re.I)
-SUBSIDIARY = re.compile(r"kumba|de beers|anglo (american )?platinum|thungela|reconciliation|notification", re.I)
+# Announcements made under the group's EPIC on behalf of a subsidiary, an
+# affiliate or another issuer: not the listed group's own event.
+SUBSIDIARY = re.compile(
+    r"kumba|de beers|anglo (american )?platinum|anglo platinum|thungela|reconciliation|notification|"
+    r"hsbc (bank|usa|finance|mexico|seguros|trinkaus|north america|france|private|insurance|uk bank)|investdirect|"
+    r"bank ekonomi|grupo financiero|hk ?& ?shanghai|hongkong and shanghai|hong kong and shanghai|saudi british|hang seng|"
+    r"citizens financial|rbs holdings|royal bank of scotland n\.?v|natwest markets|ulster bank|absa|"
+    r"barclays (us|bank|africa)|cairn india|\bcil\b|investec (tier|bank)|lloyds bank|bank of scotland|hbos|"
+    r"santander uk|scottish widows|scottish amicable|listed debt|national grid (gas|electricity|north america|usa)|"
+    r"\busl\b|united spirits|vantage towers|\bus half year|jackson national|hiscox insurance|"
+    r"nationwide|aviva (insurance|investors)|unilever (n\.?v|united states|capital)|shell (international|finance)", re.I)
+
+# "Results" headlines that are not financial results (capital-markets
+# transactions, auctions, ballots, votes at non-annual meetings, etc.)
+NONFINANCIAL = re.compile(
+    r"placing|allotment|invitation|tender|consent|repurchase|buy[- ]?back|capital (increase|raise|raising)|"
+    r"capacity (market|auction)|\bauction|cfd allocation|ballot|stockholder|(?<!annual )general mee|\begm\b|court meeting|"
+    r"noteholder|bondholder|\bnotes\b|(senior|subordinated) note|\bbonds?\b|prospectus|dfast|ccar|stress test|revpar|impact on|positive impact|"
+    r"approach|simplified|us ten|corporate calendar|exchange offer|scrip|election|referendum", re.I)
+
+# Notices of dates / timing / calls rather than the event itself (dropped for every type)
+DATE_NOTICE = re.compile(
+    r"(?<!to[- ])\bdates?\b|timing|announcement date|\bnotice of|advance notice|\bto hold\b|\bholds\b.*(call|confere)|"
+    r"\bwill (hold|announce|report|publish)\b|calendar|conference ca|confere\w*\.*$|earnings call|\bweb ?cast|call details|"
+    r"change (of|to|in) .*(date|time)", re.I)
+
+# AGM headlines are kept only when they report the meeting itself (results/votes,
+# statements or speeches made at it, or a trading/business update given at it).
+AGM_KEEP = re.compile(
+    r"result|vot|poll|statem|\bad$|address|speech|presentation|trading|business update|chairman|chief executive|"
+    r"points|minutes|resolutions|^(the )?(\d{4} )?(agm|annual general meeting)s?( \d{4})?$|\b(ims|interim management|q[1-4])\b", re.I)
+
+
+def reject_reason(head):
+    h = head.strip()
+    if SUBSIDIARY.search(h):
+        return "subsidiary/affiliate/other issuer"
+    if re.search(r"postpone|cancel|statement re\b|update statement|statement on .*vote", h, re.I):
+        return "other"
+    return None
 
 
 def classify(head):
     h = head.strip()
-    if SUBSIDIARY.search(h) or re.search(r"postpone|cancel|statement re\b|update statement|update on .*(agm|annual general)", h, re.I):
+    if reject_reason(h):
         return None
     if INVESTOR.search(h) and not re.search(r"notice|date|timing|webcast|announcement$|details|^circ", h, re.I):
         return "Investor day"
-    if AGM.search(h):
+    if AGM.search(h) or re.search(r"voting at .*\bann", h, re.I):
         if ANNUAL.search(h) and not ANNUAL_NOT.search(h):
             return "Annual report"
-        if AGM_NOT.search(h) and not re.search(r"result|statement|trading|update|ims|interim management", h, re.I):
+        if DATE_NOTICE.search(h) or AGM_NOT.search(h) and not re.search(r"result|statement|trading|ims|interim management|vot|poll", h, re.I):
             return None
-        return "AGM"
-    if NOT_EVENT.search(h):
+        if re.search(r"covid|coronavirus|arrangement", h, re.I) and TRADING.search(h):
+            return "Trading statement"
+        if AGM_KEEP.search(h):
+            return "AGM"
+        if TRADING.search(h):
+            return "Trading statement"
         return None
     if ANNUAL.search(h) and not ANNUAL_NOT.search(h):
         return "Annual report"
-    if TRADING.search(h):
+    if DATE_NOTICE.search(h) or NOT_EVENT.search(h):
+        return None
+    if NONFINANCIAL.search(h):
+        return None
+    if re.search(r"(performance|guidance|earnings) update", h, re.I):
+        return "Trading statement"
+    if TRADING.search(h) or re.search(r"trading\s*\.{2,}$", h, re.I):
         return "Trading statement"
     if RESULTS.search(h) and not RESULTS_NOT.search(h):
         return "Results"
     return None
+
+
+def drop_reason(head):
+    """Why a headline that matches an event keyword is not kept (for reporting)."""
+    h = head.strip()
+    r = reject_reason(h)
+    if r:
+        return r
+    if (AGM.search(h) or re.search(r"voting at .*\bann", h, re.I)) and not (ANNUAL.search(h) and not ANNUAL_NOT.search(h)):
+        return "AGM item that is a notice/arrangement update, not the meeting"
+    if DATE_NOTICE.search(h):
+        return "date/timing/call notice"
+    if NONFINANCIAL.search(h):
+        return "not financial results (placing/notes/tender/consent/auction/ballot/meeting vote/etc.)"
+    return "other"
 
 
 def period_of(head, date):
